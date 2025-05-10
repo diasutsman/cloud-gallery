@@ -3,6 +3,7 @@ import '../../../components/app_page.dart';
 import '../../../domain/extensions/context_extensions.dart';
 import '../../../gen/assets.gen.dart';
 import 'accounts_screen_view_model.dart';
+import 'components/profile_section.dart';
 import 'components/settings_action_list.dart';
 import 'package:data/storage/app_preferences.dart';
 import 'package:flutter/cupertino.dart';
@@ -84,6 +85,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
           padding: context.systemPadding +
               const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
+            // Firebase Email/Password Auth Profile Section
+            const ProfileSection(),
+            const SizedBox(height: 16),
+            
+            // Cloud Storage Account Sections
             if (FeatureFlag.googleDriveSupport)
               _googleAccount(context: context),
             const SizedBox(height: 8),

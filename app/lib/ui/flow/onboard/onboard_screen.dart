@@ -5,6 +5,7 @@ import '../../navigation/app_route.dart';
 import 'package:data/storage/app_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:style/extensions/context_extensions.dart';
 import 'package:style/text/app_text_style.dart';
 import 'package:style/animations/on_tap_scale.dart';
@@ -39,15 +40,7 @@ class OnBoardScreen extends ConsumerWidget {
                 children: [
                   _appLogo(context),
                   _onBoardDescription(context),
-                  _getStartedButton(
-                    context: context,
-                    onGetStartedTap: () {
-                      ref
-                          .read(AppPreferences.isOnBoardComplete.notifier)
-                          .state = true;
-                      HomeRoute().go(context);
-                    },
-                  ),
+                  _actionButtons(context: context, ref: ref),
                 ],
               ),
             ),
@@ -85,27 +78,87 @@ class OnBoardScreen extends ConsumerWidget {
         ),
       );
 
-  Widget _getStartedButton({
+  Widget _actionButtons({
     required BuildContext context,
-    required VoidCallback onGetStartedTap,
+    required WidgetRef ref,
   }) {
-    return OnTapScale(
-      onTap: onGetStartedTap,
-      child: Container(
-        width: context.mediaQuerySize.width * 0.8,
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50),
-          color: context.colorScheme.primary,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          context.l10n.common_get_started,
-          style: AppTextStyles.button.copyWith(
-            color: context.colorScheme.onPrimary,
+    return Column(
+      children: [
+        // Get started as guest button
+        OnTapScale(
+          onTap: () {
+            ref.read(AppPreferences.isOnBoardComplete.notifier).state = true;
+            HomeRoute().go(context);
+          },
+          child: Container(
+            width: context.mediaQuerySize.width * 0.8,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: context.colorScheme.primary,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              context.l10n.common_get_started,
+              style: AppTextStyles.button.copyWith(
+                color: context.colorScheme.onPrimary,
+              ),
+            ),
           ),
         ),
-      ),
+        
+        const SizedBox(height: 16),
+        
+        // Login button
+        OnTapScale(
+          onTap: () {
+            context.go(AppRoutePath.login);
+          },
+          child: Container(
+            width: context.mediaQuerySize.width * 0.8,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.transparent,
+              border: Border.all(
+                color: context.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              'Login',
+              style: AppTextStyles.button.copyWith(
+                color: context.colorScheme.primary,
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Sign up button
+        OnTapScale(
+          onTap: () {
+            context.go(AppRoutePath.signup);
+          },
+          child: Container(
+            width: context.mediaQuerySize.width * 0.8,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: context.colorScheme.secondary,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              'Sign Up',
+              style: AppTextStyles.button.copyWith(
+                color: context.colorScheme.onSecondary,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

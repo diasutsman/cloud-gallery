@@ -14,6 +14,8 @@ List<RouteBase> get $appRoutes => [
       $albumMediaListRoute,
       $mediaPreviewRoute,
       $mediaSelectionRoute,
+      $loginRoute,
+      $signupRoute,
     ];
 
 RouteBase get $onBoardRoute => GoRouteData.$route(
@@ -276,4 +278,48 @@ extension $MediaSelectionRouteExtension on MediaSelectionRoute {
 
   void replace(BuildContext context) =>
       context.replace(location, extra: $extra);
+}
+
+RouteBase get $loginRoute => GoRouteData.$route(
+      path: '/login',
+      factory: $LoginRouteExtension._fromState,
+    );
+
+extension $LoginRouteExtension on LoginRoute {
+  static LoginRoute _fromState(GoRouterState state) => const LoginRoute();
+
+  String get location => GoRouteData.$location(
+        '/login',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $signupRoute => GoRouteData.$route(
+      path: '/signup',
+      factory: $SignupRouteExtension._fromState,
+    );
+
+extension $SignupRouteExtension on SignupRoute {
+  static SignupRoute _fromState(GoRouterState state) => const SignupRoute();
+
+  String get location => GoRouteData.$location(
+        '/signup',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
 }

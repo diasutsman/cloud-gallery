@@ -3,6 +3,8 @@ import '../flow/accounts/accounts_screen.dart';
 import '../flow/albums/add/add_album_screen.dart';
 import '../flow/albums/albums_screen.dart';
 import '../flow/albums/media_list/album_media_list_screen.dart';
+import '../flow/auth/login_screen.dart';
+import '../flow/auth/signup_screen.dart';
 import '../flow/clean_up/clean_up_screen.dart';
 import '../flow/main/main_screen.dart';
 import '../flow/media_selection/media_selection_screen.dart';
@@ -27,6 +29,8 @@ class AppRoutePath {
   static const accounts = '/accounts';
   static const preview = '/preview';
   static const mediaSelection = '/select';
+  static const login = '/login';
+  static const signup = '/signup';
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -194,4 +198,20 @@ class MediaSelectionRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       MediaSelectionScreen(source: $extra);
+}
+
+@TypedGoRoute<LoginRoute>(path: AppRoutePath.login)
+class LoginRoute extends GoRouteData {
+  const LoginRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const LoginScreen();
+}
+
+@TypedGoRoute<SignupRoute>(path: AppRoutePath.signup)
+class SignupRoute extends GoRouteData {
+  const SignupRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const SignupScreen();
 }
