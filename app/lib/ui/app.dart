@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'navigation/app_route.dart';
 import '../domain/extensions/context_extensions.dart';
+import '../domain/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,11 +27,27 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
   late NotificationHandler _notificationHandler;
 
   String _configureInitialRoute() {
-    if (!ref.read(AppPreferences.isOnBoardComplete)) {
+    final isOnBoardComplete = ref.read(AppPreferences.isOnBoardComplete);
+    final authState = ref.read(authStateProvider);
+
+    // First check if onboarding is complete
+    if (!isOnBoardComplete) {
       return AppRoutePath.onBoard;
-    } else {
-      return AppRoutePath.home;
     }
+
+    // Then check authentication state
+    return authState.maybeWhen(
+      data: (user) {
+        // If user is not logged in, redirect to login
+        if (user == null) {
+          return AppRoutePath.login;
+        }
+        // User is logged in, go to home
+        return AppRoutePath.home;
+      },
+      // Default case (loading, error) - redirect to login for safe handling
+      orElse: () => AppRoutePath.login,
+    );
   }
 
   @override
