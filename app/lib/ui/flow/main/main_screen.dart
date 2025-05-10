@@ -33,11 +33,11 @@ class _MainScreenState extends State<MainScreen> {
         label: context.l10n.album_tab_title,
         activeIcon: CupertinoIcons.folder_fill
       ),
-      (
-        icon: CupertinoIcons.arrow_up_arrow_down,
-        label: context.l10n.transfer_tab_title,
-        activeIcon: CupertinoIcons.arrow_up_arrow_down
-      ),
+      // (
+      //   icon: CupertinoIcons.arrow_up_arrow_down,
+      //   label: context.l10n.transfer_tab_title,
+      //   activeIcon: CupertinoIcons.arrow_up_arrow_down
+      // ),
       (
         icon: CupertinoIcons.person,
         label: context.l10n.account_tab_title,
@@ -141,10 +141,10 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         AlbumsRoute().go(context);
         break;
+      // case 2:
+      //   TransferRoute().go(context);
+      //   break;
       case 2:
-        TransferRoute().go(context);
-        break;
-      case 3:
         AccountRoute().go(context);
         break;
     }

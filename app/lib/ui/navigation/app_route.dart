@@ -56,11 +56,11 @@ class OnBoardRoute extends GoRouteData {
         TypedGoRoute<AlbumsRoute>(path: AppRoutePath.albums),
       ],
     ),
-    TypedStatefulShellBranch<TransferShellBranch>(
-      routes: [
-        TypedGoRoute<TransferRoute>(path: AppRoutePath.transfer),
-      ],
-    ),
+    // TypedStatefulShellBranch<TransferShellBranch>(
+    //   routes: [
+    //     TypedGoRoute<TransferRoute>(path: AppRoutePath.transfer),
+    //   ],
+    // ),
     TypedStatefulShellBranch<AccountsShellBranch>(
       routes: [
         TypedGoRoute<AccountRoute>(path: AppRoutePath.accounts),
@@ -205,7 +205,8 @@ class LoginRoute extends GoRouteData {
   const LoginRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => const LoginScreen();
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LoginScreen();
 }
 
 @TypedGoRoute<SignupRoute>(path: AppRoutePath.signup)
@@ -213,5 +214,6 @@ class SignupRoute extends GoRouteData {
   const SignupRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) => const SignupScreen();
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SignupScreen();
 }

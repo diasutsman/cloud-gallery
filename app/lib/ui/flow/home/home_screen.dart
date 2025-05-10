@@ -287,7 +287,7 @@ class HomeTransferButton extends StatelessWidget {
       size: 36,
       backgroundColor: context.colorScheme.containerNormal,
       onPressed: () async {
-        await TransferRoute().push(context);
+        // await TransferRoute().push(context);
       },
       icon: Icon(
         CupertinoIcons.arrow_up_arrow_down,

@@ -62,14 +62,6 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
         StatefulShellBranchData.$branch(
           routes: [
             GoRouteData.$route(
-              path: '/transfer',
-              factory: $TransferRouteExtension._fromState,
-            ),
-          ],
-        ),
-        StatefulShellBranchData.$branch(
-          routes: [
-            GoRouteData.$route(
               path: '/accounts',
               factory: $AccountRouteExtension._fromState,
             ),
@@ -105,23 +97,6 @@ extension $AlbumsRouteExtension on AlbumsRoute {
 
   String get location => GoRouteData.$location(
         '/albums',
-      );
-
-  void go(BuildContext context) => context.go(location);
-
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  void replace(BuildContext context) => context.replace(location);
-}
-
-extension $TransferRouteExtension on TransferRoute {
-  static TransferRoute _fromState(GoRouterState state) => const TransferRoute();
-
-  String get location => GoRouteData.$location(
-        '/transfer',
       );
 
   void go(BuildContext context) => context.go(location);

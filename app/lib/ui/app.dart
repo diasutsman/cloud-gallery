@@ -31,9 +31,9 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
     final authState = ref.read(authStateProvider);
 
     // First check if onboarding is complete
-    if (!isOnBoardComplete) {
-      return AppRoutePath.onBoard;
-    }
+    // if (!isOnBoardComplete) {
+    //   return AppRoutePath.onBoard;
+    // }
 
     // Then check authentication state
     return authState.maybeWhen(
