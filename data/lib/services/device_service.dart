@@ -16,7 +16,7 @@ class DeviceService {
   Future<void> rateApp() async {
     final targetUrl = (Platform.isIOS || Platform.isMacOS)
         ? "itms-apps://itunes.apple.com/app/6480052005"
-        : "market://details?id=com.canopas.cloud_gallery";
+        : "market://details?id=com.example.photo_and_video_vault_app";
     await launchUrlString(targetUrl);
   }
 }

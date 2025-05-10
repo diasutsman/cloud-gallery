@@ -95,7 +95,7 @@ class AuthService {
     final codeVerifier = _oauth2.generateCodeVerifier;
     _dropboxCodeVerifierPrefProvider.state = codeVerifier;
     final authorizationUrl = _oauth2.getAuthorizationUrl(
-      clientId: AppSecretes.dropBoxAppKey,
+      clientId: AppSecrets.dropBoxAppKey,
       authorizationEndpoint: Uri.parse('${BaseURL.dropboxOAuth2Web}/authorize'),
       additionalParameters: {'token_access_type': 'offline'},
       redirectUri: RedirectURL.auth,
@@ -115,9 +115,9 @@ class AuthService {
       DropboxTokenEndpoint(
         code: code,
         codeVerifier: _dropboxCodeVerifierPrefProvider.state!,
-        clientId: AppSecretes.dropBoxAppKey,
+        clientId: AppSecrets.dropBoxAppKey,
         redirectUrl: RedirectURL.auth,
-        clientSecret: AppSecretes.dropBoxAppSecret,
+        clientSecret: AppSecrets.dropBoxAppSecret,
       ),
     );
     if (res.statusCode == 200) {
@@ -149,8 +149,8 @@ class AuthService {
       final res = await _dio.req(
         DropboxRefreshTokenEndpoint(
           refreshToken: _dropboxTokenController.state!.refresh_token,
-          clientId: AppSecretes.dropBoxAppKey,
-          clientSecret: AppSecretes.dropBoxAppSecret,
+          clientId: AppSecrets.dropBoxAppKey,
+          clientSecret: AppSecrets.dropBoxAppSecret,
         ),
       );
       if (res.statusCode == 200) {

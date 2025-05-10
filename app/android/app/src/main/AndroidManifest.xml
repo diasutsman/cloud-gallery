@@ -30,7 +30,7 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
             <meta-data
-                android:name="com.canopas.cloud_gallery.notification_icon"
+                android:name="com.example.photo_and_video_vault_app.notification_icon"
                 android:resource="@drawable/cloud_gallery_logo" />
 
             <intent-filter>

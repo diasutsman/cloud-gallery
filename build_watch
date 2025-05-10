@@ -9,7 +9,7 @@ trap cleanup EXIT
 # Function to keep running a command until it succeeds
 function keep_running {
     while true; do
-        dart run build_runner watch --delete-conflicting-outputs;
+        flutter pub run build_runner watch --delete-conflicting-outputs;
         echo "Command failed with no zero exit code. Respawning.."
         sleep 1
     done
