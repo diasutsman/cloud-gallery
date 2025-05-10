@@ -85,30 +85,30 @@ class OnBoardScreen extends ConsumerWidget {
     return Column(
       children: [
         // Get started as guest button
-        OnTapScale(
-          onTap: () {
-            ref.read(AppPreferences.isOnBoardComplete.notifier).state = true;
-            HomeRoute().go(context);
-          },
-          child: Container(
-            width: context.mediaQuerySize.width * 0.8,
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              color: context.colorScheme.primary,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              context.l10n.common_get_started,
-              style: AppTextStyles.button.copyWith(
-                color: context.colorScheme.onPrimary,
-              ),
-            ),
-          ),
-        ),
-        
-        const SizedBox(height: 16),
-        
+        // OnTapScale(
+        //   onTap: () {
+        //     ref.read(AppPreferences.isOnBoardComplete.notifier).state = true;
+        //     HomeRoute().go(context);
+        //   },
+        //   child: Container(
+        //     width: context.mediaQuerySize.width * 0.8,
+        //     height: 48,
+        //     decoration: BoxDecoration(
+        //       borderRadius: BorderRadius.circular(50),
+        //       color: context.colorScheme.primary,
+        //     ),
+        //     alignment: Alignment.center,
+        //     child: Text(
+        //       context.l10n.common_get_started,
+        //       style: AppTextStyles.button.copyWith(
+        //         color: context.colorScheme.onPrimary,
+        //       ),
+        //     ),
+        //   ),
+        // ),
+
+        // const SizedBox(height: 16),
+
         // Login button
         OnTapScale(
           onTap: () {
@@ -134,9 +134,9 @@ class OnBoardScreen extends ConsumerWidget {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Sign up button
         OnTapScale(
           onTap: () {
@@ -147,7 +147,7 @@ class OnBoardScreen extends ConsumerWidget {
             height: 48,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(50),
-              color: context.colorScheme.secondary,
+              color: context.colorScheme.primary,
             ),
             alignment: Alignment.center,
             child: Text(
