@@ -1,6 +1,6 @@
-import 'package:cloud_gallery/domain/extensions/context_extensions.dart';
-import 'package:cloud_gallery/domain/services/auth_service.dart';
-import 'package:cloud_gallery/ui/navigation/app_route.dart';
+import '../../../../domain/extensions/context_extensions.dart';
+import '../../../../domain/services/auth_service.dart';
+import '../../../navigation/app_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,13 +19,13 @@ class ProfileSection extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      // margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(0),
         child: authState.when(
           data: (User? user) {
             if (user != null) {
