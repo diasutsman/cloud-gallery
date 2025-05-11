@@ -243,15 +243,30 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
         ).then((value) => value.nonNulls.toList());
         moreMedia = {for (final item in res) item.dropboxMediaRefId!: item};
       } else if (state.album.source == AppMediaSource.firebase) {
+        _logger.d(
+          'Updating updatedMedias: $updatedMedias',
+        );
         final updatedAlbum = await _firebaseService.updateAlbum(
           id: state.album.id,
           mediaIds: updatedMedias,
         );
+        for (var i = 0; i < updatedMedias.length; i++) {
+          updatedMedias[i] = updatedAlbum?.medias[i] ?? updatedMedias[i];
+        }
+        _logger.d(
+          'Updated updatedAlbum?.medias: ${updatedAlbum?.medias}',
+        );
         final res = await Future.wait(
-          (updatedAlbum?.medias ?? medias)
+          (updatedAlbum?.medias ?? updatedMedias)
               .map((id) => _firebaseService.getMedia(id: id)),
         ).then((value) => value.nonNulls.toList());
+        _logger.d(
+          'Updated res: $res',
+        );
         moreMedia = {for (final item in res) item.id: item};
+        _logger.d(
+          'Updated moreMedia: $moreMedia',
+        );
       }
 
       state = state.copyWith(

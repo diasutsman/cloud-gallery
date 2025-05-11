@@ -590,11 +590,15 @@ class FirebaseService extends CloudProviderService {
   /// Helper method to ensure media exists in Firebase
   /// If media doesn't exist, it will upload it using the uploadMedia method
   Future<List<String>> _ensureMediaExists(List<String> mediaIds) async {
+    _logger.d('Ensuring media exists mediaIds: $mediaIds');
     if (mediaIds.isEmpty) return [];
+
+    // Create a copy of mediaIds to preserve original order
+    final resultIds = List<String>.from(mediaIds);
 
     // Check which media IDs already exist
     final chunks = _chunkList(mediaIds, 10);
-    final existingMediaIds = <String>[];
+    final existingMediaIds = <String>{};
     final now = DateTime.now();
 
     for (final chunk in chunks) {
@@ -605,56 +609,43 @@ class FirebaseService extends CloudProviderService {
       existingMediaIds.addAll(querySnapshot.docs.map((doc) => doc.id));
     }
 
-    // Find media IDs that don't exist yet
-    final newMediaIds =
-        mediaIds.where((id) => !existingMediaIds.contains(id)).toList();
+    // Process media IDs that don't exist yet
+    for (int i = 0; i < resultIds.length; i++) {
+      final id = resultIds[i];
+      if (existingMediaIds.contains(id)) continue;
 
-    final List<String> uploadedMediaIds = [];
-
-    // Create new media documents or upload media for IDs that don't exist
-    for (final newId in newMediaIds) {
       // Get local media data
-      final localMedia = await _localMediaService.getMedia(id: newId);
-
-      AppMedia? uploadedMedia;
+      final localMedia = await _localMediaService.getMedia(id: id);
 
       if (localMedia != null) {
         try {
           // Use the existing uploadMedia method to handle the upload
-          uploadedMedia = await uploadMedia(
+          final uploadedMedia = await uploadMedia(
             folderId: 'users/$_userId/media',
             path: localMedia.path,
             mimeType: localMedia.mimeType,
-            localRefId:
-                newId, // Use the media ID as the localRefId for reference
+            localRefId: id, // Use the media ID as the localRefId for reference
           );
+
+          // Replace the original ID with the uploaded media ID in the result
+          resultIds[i] = uploadedMedia.id;
         } catch (e, st) {
           _logger.e('Error uploading media to Firebase Storage: $e\n$st');
-
-          // Create a basic document even if upload fails
-          // await _mediaCollection.doc(newId).set({
-          //   'id': newId,
-          //   'userId': _userId,
-          //   'createdAt': now,
-          //   'updatedAt': now,
-          //   'status': 'upload_failed',
-          // });
           rethrow;
-        } finally {
-          uploadedMediaIds.add(uploadedMedia?.id ?? newId);
         }
       } else {
         // If no local media is found, create basic placeholder
-        await _mediaCollection.doc(newId).set({
-          'id': newId,
+        await _mediaCollection.doc(id).set({
+          'id': id,
           'userId': _userId,
-          'createdAt': now,
-          'updatedAt': now,
+          'createdTime': now,
+          'updatedTime': now,
         });
-        uploadedMediaIds.add(newId);
       }
     }
-    return [...existingMediaIds, ...uploadedMediaIds];
+
+    _logger.d('Ensuring media exists resultIds: $resultIds');
+    return resultIds;
   }
 
   /// Create a new album
