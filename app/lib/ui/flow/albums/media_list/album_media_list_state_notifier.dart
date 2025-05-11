@@ -328,6 +328,11 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
         await _dropboxService.updateAlbum(
           state.album.copyWith(medias: updatedMedias),
         );
+      } else if (state.album.source == AppMediaSource.firebase) {
+        await _firebaseService.updateAlbum(
+          id: state.album.id,
+          mediaIds: updatedMedias,
+        );
       }
 
       state = state.copyWith(
