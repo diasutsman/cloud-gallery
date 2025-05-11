@@ -9,6 +9,7 @@ import 'package:data/models/media_process/media_process.dart';
 import 'package:data/repositories/media_process_repository.dart';
 import 'package:data/services/auth_service.dart';
 import 'package:data/services/dropbox_services.dart';
+import 'package:data/services/firebase_service.dart';
 import 'package:data/services/google_drive_service.dart';
 import 'package:data/services/local_media_service.dart';
 import 'package:data/storage/app_preferences.dart';
@@ -31,6 +32,7 @@ final mediaPreviewStateNotifierProvider =
     ref.read(localMediaServiceProvider),
     ref.read(googleDriveServiceProvider),
     ref.read(dropboxServiceProvider),
+    ref.read(firebaseServiceProvider),
     ref.read(mediaProcessRepoProvider),
     ref.read(authServiceProvider),
     ref.read(connectivityHandlerProvider),
@@ -49,6 +51,7 @@ class MediaPreviewStateNotifier extends StateNotifier<MediaPreviewState> {
   final LocalMediaService _localMediaService;
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
+  final FirebaseService _firebaseService;
   final MediaProcessRepo _mediaProcessRepo;
   final ConnectivityHandler _connectivityHandler;
   final AuthService _authService;
@@ -61,6 +64,7 @@ class MediaPreviewStateNotifier extends StateNotifier<MediaPreviewState> {
     this._localMediaService,
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._mediaProcessRepo,
     this._authService,
     this._connectivityHandler,
@@ -375,6 +379,37 @@ class MediaPreviewStateNotifier extends StateNotifier<MediaPreviewState> {
       state = state.copyWith(actionError: e);
       _logger.e(
         "MediaPreviewStateNotifier: unable to download media from Dropbox",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  Future<void> downloadFromFirebase({required AppMedia media}) async {
+    try {
+      // Firebase doesn't require explicit authentication check like the others
+      // since it uses the app's Firebase instance
+      state = state.copyWith(actionError: null);
+
+      await _connectivityHandler.checkInternetAccess();
+
+      // Use the default media folder path for Firebase
+      final folderId = 'users/${_firebaseService.userId}/media';
+
+      _logger.d('Downloading media media.name: ${media.name}');
+      _logger.d(
+          'Downloading media media.isFirebaseStored: ${media.isFirebaseStored}');
+      _logger.d('Downloading media folderId: $folderId');
+
+      _mediaProcessRepo.downloadMedia(
+        folderId: folderId,
+        medias: [media],
+        provider: MediaProvider.firebase,
+      );
+    } catch (e, s) {
+      state = state.copyWith(actionError: e);
+      _logger.e(
+        "MediaPreviewStateNotifier: unable to download media from Firebase",
         error: e,
         stackTrace: s,
       );

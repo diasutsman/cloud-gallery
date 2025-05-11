@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import '../domain/config.dart';
@@ -18,6 +19,7 @@ import '../models/media/media.dart';
 import '../models/media/media_extension.dart';
 import '../models/media_process/media_process.dart';
 import '../services/dropbox_services.dart';
+import '../services/firebase_service.dart';
 import '../services/google_drive_service.dart';
 import '../services/local_media_service.dart';
 import '../storage/app_preferences.dart';
@@ -26,6 +28,7 @@ final mediaProcessRepoProvider = Provider<MediaProcessRepo>((ref) {
   final repo = MediaProcessRepo(
     ref.read(googleDriveServiceProvider),
     ref.read(dropboxServiceProvider),
+    ref.read(firebaseServiceProvider),
     ref.read(localMediaServiceProvider),
     ref.read(notificationHandlerProvider),
     ref.read(AppPreferences.notifications),
@@ -77,6 +80,7 @@ class DeleteMediaEvent {
 class MediaProcessRepo extends ChangeNotifier {
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
+  final FirebaseService _firebaseService;
   final LocalMediaService _localMediaService;
   final NotificationHandler _notificationHandler;
   final UniqueIdGenerator _uniqueIdGenerator;
@@ -104,6 +108,7 @@ class MediaProcessRepo extends ChangeNotifier {
   MediaProcessRepo(
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._localMediaService,
     this._notificationHandler,
     this._showNotification,
@@ -822,7 +827,10 @@ class MediaProcessRepo extends ChangeNotifier {
     for (AppMedia media in medias) {
       final id = provider == MediaProvider.googleDrive
           ? media.driveMediaRefId
-          : media.dropboxMediaRefId;
+          : provider == MediaProvider.dropbox
+              ? media.dropboxMediaRefId
+              : media.id;
+      Logger().d('Downloading media id: $id');
       batch.insert(
         LocalDatabaseConstants.downloadQueueTable,
         DownloadMediaProcess(
@@ -907,6 +915,8 @@ class MediaProcessRepo extends ChangeNotifier {
         _downloadFromGoogleDrive(process);
       } else if (process.provider == MediaProvider.dropbox) {
         _downloadFromDropbox(process);
+      } else if (process.provider == MediaProvider.firebase) {
+        _downloadFromFirebase(process);
       } else {
         updateDownloadProcessStatus(
           status: MediaQueueProcessStatus.failed,
@@ -1141,6 +1151,123 @@ class MediaProcessRepo extends ChangeNotifier {
       }
 
       showNotification('Failed to download from Dropbox');
+
+      await updateDownloadProcessStatus(
+        status: MediaQueueProcessStatus.failed,
+        id: process.id,
+      );
+    } finally {
+      if (tempFileLocation != null && await File(tempFileLocation).exists()) {
+        await File(tempFileLocation).delete();
+      }
+    }
+  }
+
+  Future<void> _downloadFromFirebase(
+    DownloadMediaProcess downloadProcess,
+  ) async {
+    DownloadMediaProcess process = downloadProcess;
+    String? tempFileLocation;
+    Timer? updateDatabaseDebounce;
+
+    Future<void> showNotification(
+      String message, {
+      int? chunk,
+      int total = 100,
+    }) async {
+      if (!_showNotification) return;
+      _notificationHandler.showNotification(
+        silent: true,
+        id: process.notification_id,
+        name: process.media_id,
+        description: message,
+        groupKey: ProcessNotificationConstants.downloadProcessGroupIdentifier,
+        progress: chunk,
+        maxProgress: total,
+        category: chunk != null ? AndroidNotificationCategory.progress : null,
+      );
+    }
+
+    try {
+      showNotification('Downloading from Firebase');
+
+      await updateDownloadProcessStatus(
+        status: MediaQueueProcessStatus.downloading,
+        id: process.id,
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      tempFileLocation =
+          "${tempDir.path}/${process.media_id}.${process.extension}";
+
+      final cancelToken = CancelToken();
+
+      await _firebaseService.downloadMedia(
+        id: process.media_id,
+        saveLocation: tempFileLocation,
+        onProgress: (received, total) async {
+          process =
+              _downloadQueue.firstWhere((element) => element.id == process.id);
+          if (process.status.isTerminated) {
+            cancelToken.cancel();
+          }
+
+          if (updateDatabaseDebounce == null ||
+              !updateDatabaseDebounce!.isActive) {
+            updateDatabaseDebounce = Timer(Duration(milliseconds: 300), () {});
+
+            if (!process.status.isTerminated && received <= total) {
+              showNotification(
+                '${received.formatBytes} / ${total.formatBytes} - ${total <= 0 ? 0 : (received / total * 100).round()}%',
+                chunk: received,
+                total: total,
+              );
+            }
+
+            await updateDownloadProcessProgress(
+              id: process.id,
+              received: received,
+              total: total,
+            );
+          }
+        },
+        cancelToken: cancelToken,
+      );
+
+      final localMedia = await _localMediaService.saveInGallery(
+        saveFromLocation: tempFileLocation,
+        type: AppMediaType.fromLocation(location: tempFileLocation),
+      );
+
+      if (localMedia == null) {
+        showNotification('Failed to save media in gallery');
+
+        await updateDownloadProcessStatus(
+          status: MediaQueueProcessStatus.failed,
+          id: process.id,
+        );
+        return;
+      }
+
+      // No need to update app properties for Firebase as we're not using federated properties like Google Drive/Dropbox
+      // Instead, we might want to update the local ID in Firestore if needed in the future
+
+      showNotification('Downloaded from Firebase successfully');
+
+      await updateDownloadProcessStatus(
+        status: MediaQueueProcessStatus.completed,
+        response: localMedia,
+        id: process.id,
+      );
+
+      await clearDownloadProcessResponse(id: process.id);
+    } catch (error) {
+      if (error is DioException && error.type == DioExceptionType.cancel) {
+        showNotification('Download from Firebase cancelled');
+        return;
+      }
+
+      showNotification('Failed to download from Firebase');
 
       await updateDownloadProcessStatus(
         status: MediaQueueProcessStatus.failed,

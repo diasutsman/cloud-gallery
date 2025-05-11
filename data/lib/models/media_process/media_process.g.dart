@@ -45,6 +45,7 @@ Map<String, dynamic> _$$DownloadMediaProcessImplToJson(
 const _$MediaProviderEnumMap = {
   MediaProvider.googleDrive: 'google-drive',
   MediaProvider.dropbox: 'dropbox',
+  MediaProvider.firebase: 'firebase',
 };
 
 const _$MediaQueueProcessStatusEnumMap = {

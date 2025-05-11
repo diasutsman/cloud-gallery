@@ -42,7 +42,8 @@ enum MediaQueueProcessStatus {
 @JsonEnum(valueField: 'value')
 enum MediaProvider {
   googleDrive('google-drive'),
-  dropbox('dropbox');
+  dropbox('dropbox'),
+  firebase('firebase');
 
   final String value;
 

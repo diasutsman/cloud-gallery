@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:data/log/logger.dart';
 import 'package:data/storage/app_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -69,7 +70,8 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
     _pageController = PageController(initialPage: currentIndex, keepPage: true);
 
     if (widget.medias[currentIndex].type.isVideo &&
-        widget.medias[currentIndex].sources.contains(AppMediaSource.local)) {
+        (widget.medias[currentIndex].sources.contains(AppMediaSource.local) ||
+            widget.medias[currentIndex].isFirebaseStored)) {
       runPostFrame(() {
         _initializeVideoControllerWithListener(
           path: widget.medias[currentIndex].path,
@@ -81,14 +83,56 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
 
   Future<void> _initializeVideoControllerWithListener({
     required String path,
+    bool isNetworkUrl = false,
   }) async {
-    _videoPlayerController = VideoPlayerController.file(File(path));
-    _videoPlayerController?.addListener(_observeVideoController);
-    await _videoPlayerController?.initialize();
-    _notifier.updateVideoInitialized(
-      _videoPlayerController?.value.isInitialized ?? false,
-    );
-    await _videoPlayerController?.play();
+    try {
+      // Dispose any existing controller first to avoid conflicts
+      if (_videoPlayerController != null) {
+        await _videoPlayerController!.pause();
+        _videoPlayerController!.removeListener(_observeVideoController);
+        await _videoPlayerController!.dispose();
+        _videoPlayerController = null;
+      }
+
+      // Create the appropriate controller
+      if (isNetworkUrl) {
+        debugPrint('Initializing network video player: $path');
+        // For network URLs (Firebase storage URLs)
+        _videoPlayerController = VideoPlayerController.networkUrl(
+          Uri.parse(path),
+          // Add explicit video format options for better compatibility
+          videoPlayerOptions: VideoPlayerOptions(
+            mixWithOthers: false,
+            allowBackgroundPlayback: false,
+          ),
+        );
+      } else {
+        // For local files
+        _videoPlayerController = VideoPlayerController.file(File(path));
+      }
+
+      // Setup listener before initialization
+      _videoPlayerController!.addListener(_observeVideoController);
+
+      // Initialize the controller
+      _notifier.updateVideoBuffering(true);
+      await _videoPlayerController!.initialize();
+
+      // Update state after initialization
+      _notifier.updateVideoInitialized(
+        _videoPlayerController!.value.isInitialized,
+      );
+      _notifier.updateVideoBuffering(false);
+
+      // Start playback
+      if (_videoPlayerController!.value.isInitialized) {
+        await _videoPlayerController!.play();
+      }
+    } catch (e) {
+      debugPrint('Error initializing video player: $e');
+      _notifier.updateVideoInitialized(false);
+      _notifier.updateVideoBuffering(false);
+    }
   }
 
   void _observeVideoController() {
@@ -142,11 +186,20 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
         _videoPlayerController?.dispose();
         _videoPlayerController = null;
       }
-      if (next != null &&
-          next.type.isVideo &&
-          next.sources.contains(AppMediaSource.local)) {
-        _initializeVideoControllerWithListener(path: next.path);
-        _notifier.updateInitializedVideoPath(next.path);
+      if (next != null && next.type.isVideo) {
+        // Handle both local and Firebase videos
+        if (next.sources.contains(AppMediaSource.local)) {
+          // For local videos
+          _initializeVideoControllerWithListener(path: next.path);
+          _notifier.updateInitializedVideoPath(next.path);
+        } else if (next.isFirebaseStored) {
+          // For Firebase videos
+          _initializeVideoControllerWithListener(
+            path: next.path,
+            isNetworkUrl: true,
+          );
+          _notifier.updateInitializedVideoPath(next.path);
+        }
       }
     });
   }
@@ -221,7 +274,7 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
               },
             ),
             _videoActions(context),
-            _videoDurationSlider(context),
+            // _videoDurationSlider(context),
           ],
         ],
       ),
@@ -328,7 +381,9 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
         ),
       );
     } else if (media.type.isVideo &&
-        (media.isGoogleDriveStored || media.isDropboxStored)) {
+        (media.isGoogleDriveStored ||
+            media.isDropboxStored ||
+            media.isFirebaseStored)) {
       return DismissiblePage(
         enableScale: false,
         backgroundColor: context.colorScheme.surface,
@@ -375,34 +430,126 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
     required BuildContext context,
     required AppMedia media,
   }) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final process = ref.watch(
-          _provider.select(
-            (value) =>
-                media.driveMediaRefId != null && media.isGoogleDriveStored
-                    ? value.downloadMediaProcesses[media.driveMediaRefId]
-                    : media.dropboxMediaRefId != null
-                        ? value.downloadMediaProcesses[media.dropboxMediaRefId]
-                        : null,
-          ),
-        );
-        return DownloadRequireView(
-          heroTag: widget.heroTag,
-          dropboxAccessToken:
-              ref.read(AppPreferences.dropboxToken)?.access_token,
-          media: media,
-          downloadProcess: process,
-          onDownload: () {
-            if (media.isGoogleDriveStored) {
-              _notifier.downloadFromGoogleDrive(media: media);
-            } else if (media.isDropboxStored) {
-              _notifier.downloadFromDropbox(media: media);
-            }
-          },
-        );
-      },
-    );
+    // If it's a Firebase video, play it directly
+    if (media.isFirebaseStored && media.type.isVideo) {
+      ref
+          .read(loggerProvider)
+          .d('Playing Firebase video directly: ${media.path}');
+
+      return Consumer(
+        builder: (context, ref, child) {
+          final state = ref.watch(
+            _provider.select(
+              (state) => (
+                initialized: state.isVideoInitialized,
+                buffering: state.isVideoBuffering,
+                initializedVideoPath: state.initializedVideoPath,
+              ),
+            ),
+          );
+
+          // Initialize the video player if needed
+          if (_videoPlayerController == null ||
+              media.path != state.initializedVideoPath) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_videoPlayerController != null) {
+                _videoPlayerController!.removeListener(_observeVideoController);
+                _videoPlayerController!.dispose();
+                _videoPlayerController = null;
+              }
+              _initializeVideoControllerWithListener(
+                path: media.path,
+                isNetworkUrl: true,
+              );
+              _notifier.updateInitializedVideoPath(media.path);
+            });
+          }
+
+          return Stack(
+            children: [
+              Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (state.initialized &&
+                        media.path == state.initializedVideoPath &&
+                        _videoPlayerController != null)
+                      AspectRatio(
+                        aspectRatio: _videoPlayerController!.value.aspectRatio,
+                        child: VideoPlayer(_videoPlayerController!),
+                      ),
+                    // Show thumbnail while loading
+                    if (!state.initialized ||
+                        media.path != state.initializedVideoPath)
+                      Hero(
+                        tag: "${widget.heroTag}${media.toString()}",
+                        child: Image(
+                          image: AppMediaImageProvider(
+                            media: media,
+                            thumbnailSize: Size(800, 600),
+                          ),
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    // Show loading indicator if buffering
+                    if (state.buffering ||
+                        (!state.initialized &&
+                            media.path == state.initializedVideoPath))
+                      const AppCircularProgressIndicator(),
+                  ],
+                ),
+              ),
+              _videoActions(context),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 30,
+                child: _videoDurationSlider(context),
+              ),
+            ],
+          );
+        },
+      );
+    }
+    // For Google Drive and Dropbox videos, or any other media type, show download view
+    else {
+      return Consumer(
+        builder: (context, ref, child) {
+          final process = ref.watch(
+            _provider.select(
+              (value) => media.driveMediaRefId != null &&
+                      media.isGoogleDriveStored
+                  ? value.downloadMediaProcesses[media.driveMediaRefId]
+                  : media.dropboxMediaRefId != null
+                      ? value.downloadMediaProcesses[media.dropboxMediaRefId]
+                      : value.downloadMediaProcesses[media.id],
+            ),
+          );
+          return DownloadRequireView(
+            heroTag: widget.heroTag,
+            dropboxAccessToken:
+                ref.read(AppPreferences.dropboxToken)?.access_token,
+            media: media,
+            downloadProcess: process,
+            onDownload: () {
+              ref.read(loggerProvider).d('Downloading media: ${media.name}');
+              ref
+                  .read(loggerProvider)
+                  .d('Downloading media: ${media.isFirebaseStored}');
+              if (media.isGoogleDriveStored) {
+                _notifier.downloadFromGoogleDrive(media: media);
+              } else if (media.isDropboxStored) {
+                _notifier.downloadFromDropbox(media: media);
+              } else if (media.isFirebaseStored) {
+                _notifier.downloadFromFirebase(media: media);
+              }
+            },
+          );
+        },
+      );
+    }
   }
 
   Widget _videoActions(BuildContext context) => Consumer(
