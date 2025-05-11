@@ -5,6 +5,7 @@ import 'package:data/models/dropbox/account/dropbox_account.dart';
 import 'package:data/models/media/media.dart';
 import 'package:data/services/auth_service.dart';
 import 'package:data/services/dropbox_services.dart';
+import 'package:data/services/firebase_service.dart';
 import 'package:data/services/google_drive_service.dart';
 import 'package:data/services/local_media_service.dart';
 import 'package:data/storage/app_preferences.dart';
@@ -25,6 +26,7 @@ final addAlbumStateNotifierProvider = StateNotifierProvider.autoDispose
     ref.read(localMediaServiceProvider),
     ref.read(googleDriveServiceProvider),
     ref.read(dropboxServiceProvider),
+    ref.read(firebaseServiceProvider),
     ref.read(uniqueIdGeneratorProvider),
     ref.read(loggerProvider),
     state,
@@ -52,6 +54,7 @@ class AddAlbumStateNotifier extends StateNotifier<AddAlbumsState> {
   final LocalMediaService _localMediaService;
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
+  final FirebaseService _firebaseService;
   final UniqueIdGenerator _uniqueIdGenerator;
   final Logger _logger;
   final Album? editAlbum;
@@ -62,13 +65,14 @@ class AddAlbumStateNotifier extends StateNotifier<AddAlbumsState> {
     this._localMediaService,
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._uniqueIdGenerator,
     this._logger,
     this.editAlbum,
   ) : super(
           AddAlbumsState(
             albumNameController: TextEditingController(text: editAlbum?.name),
-            mediaSource: editAlbum?.source ?? AppMediaSource.local,
+            mediaSource: editAlbum?.source ?? AppMediaSource.firebase,
             googleAccount: googleAccount,
             dropboxAccount: dropboxAccount,
           ),
@@ -147,6 +151,20 @@ class AddAlbumStateNotifier extends StateNotifier<AddAlbumsState> {
             medias: [],
           );
           await _dropboxService.createAlbum(album);
+        }
+      } else if (state.mediaSource == AppMediaSource.firebase) {
+        _logger.d('Creating album in Firebase');
+        if (editAlbum != null) {
+          await _firebaseService.updateAlbum(
+            id: editAlbum!.id,
+            name: state.albumNameController.text.trim(),
+            mediaIds: editAlbum!.medias,
+          );
+        } else {
+          await _firebaseService.createAlbum(
+            name: state.albumNameController.text.trim(),
+            mediaIds: [], // Start with empty list of media
+          );
         }
       }
       state = state.copyWith(loading: false, succeed: true);

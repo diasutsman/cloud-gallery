@@ -85,7 +85,8 @@ enum AppMediaOrientation {
 enum AppMediaSource {
   local('local'),
   googleDrive('google_drive'),
-  dropbox('dropbox');
+  dropbox('dropbox'),
+  firebase('firebase');
 
   final String value;
 
@@ -114,7 +115,7 @@ class AppMedia with _$AppMedia {
     @DurationJsonConverter() Duration? videoDuration,
     double? latitude,
     double? longitude,
-    @Default([AppMediaSource.local]) List<AppMediaSource> sources,
+    @Default([AppMediaSource.firebase]) List<AppMediaSource> sources,
   }) = _AppMedia;
 
   factory AppMedia.fromJson(Map<String, dynamic> json) =>

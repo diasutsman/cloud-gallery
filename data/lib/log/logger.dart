@@ -3,12 +3,10 @@ import 'package:logger/logger.dart';
 
 final loggerProvider = Provider<Logger>(
   (ref) => Logger(
-    filter: ProductionFilter(),
+    filter: DevelopmentFilter(),
     printer: PrettyPrinter(
-      methodCount: 0,
-      errorMethodCount: 10,
-      printEmojis: false,
-      colors: false,
+      methodCount: 8,
+      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
     ),
   ),
 );

@@ -1,3 +1,4 @@
+import 'package:data/log/logger.dart';
 import 'package:data/models/media/media.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,10 +65,15 @@ class _MediaSelectionScreenState extends ConsumerState<MediaSelectionScreen> {
           ? context.l10n.select_from_google_drive_title
           : widget.source == AppMediaSource.dropbox
               ? context.l10n.select_from_dropbox_title
-              : context.l10n.select_from_device_title,
+              : widget.source == AppMediaSource.firebase
+                  ? 'Select from Firebase'
+                  : context.l10n.select_from_device_title,
       actions: [
         ActionButton(
           onPressed: () {
+            ref.read(loggerProvider).d(
+                  'Selected medias: ${state.selectedMedias}',
+                );
             context.pop(state.selectedMedias);
           },
           icon: Icon(

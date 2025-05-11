@@ -32,7 +32,7 @@ _$AppMediaImpl _$$AppMediaImplFromJson(Map<String, dynamic> json) =>
       sources: (json['sources'] as List<dynamic>?)
               ?.map((e) => $enumDecode(_$AppMediaSourceEnumMap, e))
               .toList() ??
-          const [AppMediaSource.local],
+          const [AppMediaSource.firebase],
     );
 
 Map<String, dynamic> _$$AppMediaImplToJson(_$AppMediaImpl instance) =>
@@ -82,6 +82,7 @@ const _$AppMediaSourceEnumMap = {
   AppMediaSource.local: 'local',
   AppMediaSource.googleDrive: 'google_drive',
   AppMediaSource.dropbox: 'dropbox',
+  AppMediaSource.firebase: 'firebase',
 };
 
 Json? _$JsonConverterToJson<Json, Value>(

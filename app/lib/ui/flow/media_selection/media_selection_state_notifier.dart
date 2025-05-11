@@ -6,6 +6,7 @@ import 'package:data/models/dropbox/account/dropbox_account.dart';
 import 'package:data/models/media/media.dart';
 import 'package:data/services/auth_service.dart';
 import 'package:data/services/dropbox_services.dart';
+import 'package:data/services/firebase_service.dart';
 import 'package:data/services/google_drive_service.dart';
 import 'package:data/services/local_media_service.dart';
 import 'package:data/storage/app_preferences.dart';
@@ -23,6 +24,7 @@ final mediaSelectionStateNotifierProvider = StateNotifierProvider.autoDispose
       ref.read(localMediaServiceProvider),
       ref.read(googleDriveServiceProvider),
       ref.read(dropboxServiceProvider),
+      ref.read(firebaseServiceProvider),
       ref.read(googleUserAccountProvider),
       ref.read(AppPreferences.dropboxCurrentUserAccount),
       ref.read(loggerProvider),
@@ -35,6 +37,7 @@ class MediaSelectionStateNotifier extends StateNotifier<MediaSelectionState> {
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
   final LocalMediaService _localMediaService;
+  final FirebaseService _firebaseService;
   final GoogleSignInAccount? _googleAccount;
   final DropboxAccount? _dropboxAccount;
   final Logger _logger;
@@ -44,6 +47,7 @@ class MediaSelectionStateNotifier extends StateNotifier<MediaSelectionState> {
     this._localMediaService,
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._googleAccount,
     this._dropboxAccount,
     this._logger,
@@ -131,7 +135,8 @@ class MediaSelectionStateNotifier extends StateNotifier<MediaSelectionState> {
           medias: groupedMedias,
           loading: false,
         );
-      } else if (_source == AppMediaSource.local) {
+      } else if (_source == AppMediaSource.local ||
+          _source == AppMediaSource.firebase) {
         final hasPermission = await _localMediaService.requestPermission();
 
         if (!hasPermission) {
@@ -161,6 +166,38 @@ class MediaSelectionStateNotifier extends StateNotifier<MediaSelectionState> {
           medias: groupedMedias,
           loading: false,
         );
+
+// // firebase
+//         if (!_firebaseService.isAuthenticated) {
+//           state = state.copyWith(
+//             loading: false,
+//             noAccess: true,
+//           );
+//           return;
+//         }
+
+//         final res = await _firebaseService.getPaginatedMedias(
+//           folder: 'users/${_firebaseService.userId}/media',
+//           pageSize: 30,
+//           nextPageToken: _pageToken,
+//         );
+
+//         _pageToken = res.nextPageToken;
+//         if (res.nextPageToken == null) {
+//           _maxLoaded = true;
+//         }
+
+//         state = state.copyWith(
+//           medias: groupBy<AppMedia, DateTime>(
+//             [
+//               ...state.medias.values.expand((element) => element),
+//               ...res.medias,
+//             ],
+//             (media) =>
+//                 media.createdTime ?? media.modifiedTime ?? DateTime.now(),
+//           ),
+//           loading: false,
+//         );
       } else {
         state = state.copyWith(
           loading: false,

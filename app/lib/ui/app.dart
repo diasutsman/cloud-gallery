@@ -36,7 +36,7 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
     // }
 
     // Then check authentication state
-    return authState.maybeWhen(
+    return authState.when(
       data: (user) {
         // If user is not logged in, redirect to login
         if (user == null) {
@@ -45,8 +45,8 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
         // User is logged in, go to home
         return AppRoutePath.home;
       },
-      // Default case (loading, error) - redirect to login for safe handling
-      orElse: () => AppRoutePath.login,
+      loading: () => AppRoutePath.login,
+      error: (_, __) => AppRoutePath.login,
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:data/models/dropbox/account/dropbox_account.dart';
 import 'package:data/models/media/media.dart';
 import 'package:data/services/auth_service.dart';
 import 'package:data/services/dropbox_services.dart';
+import 'package:data/services/firebase_service.dart';
 import 'package:data/services/google_drive_service.dart';
 import 'package:data/services/local_media_service.dart';
 import 'package:data/storage/app_preferences.dart';
@@ -21,6 +22,7 @@ final albumStateNotifierProvider =
     ref.read(localMediaServiceProvider),
     ref.read(googleDriveServiceProvider),
     ref.read(dropboxServiceProvider),
+    ref.read(firebaseServiceProvider),
     ref.read(loggerProvider),
     ref.read(googleUserAccountProvider),
     ref.read(AppPreferences.dropboxCurrentUserAccount),
@@ -45,6 +47,7 @@ class AlbumStateNotifier extends StateNotifier<AlbumsState> {
   final LocalMediaService _localMediaService;
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
+  final FirebaseService _firebaseService;
   final Logger _logger;
   String? _backupFolderId;
 
@@ -52,6 +55,7 @@ class AlbumStateNotifier extends StateNotifier<AlbumsState> {
     this._localMediaService,
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._logger,
     GoogleSignInAccount? googleAccount,
     DropboxAccount? dropboxAccount,
@@ -119,17 +123,24 @@ class AlbumStateNotifier extends StateNotifier<AlbumsState> {
         _backupFolderId ??= await _googleDriveService.getBackUpFolderId();
       }
       final res = await Future.wait([
-        _localMediaService.getAlbums(),
-        (state.googleAccount != null && _backupFolderId != null)
-            ? _googleDriveService.getAlbums(folderId: _backupFolderId!)
-            : Future.value([]),
-        (state.dropboxAccount != null)
-            ? _dropboxService.getAlbums()
+        // _localMediaService.getAlbums(),
+        // (state.googleAccount != null && _backupFolderId != null)
+        //     ? _googleDriveService.getAlbums(folderId: _backupFolderId!)
+        //     : Future.value([]),
+        // (state.dropboxAccount != null)
+        //     ? _dropboxService.getAlbums()
+        //     : Future.value([]),
+        Future.value([]),
+        Future.value([]),
+        Future.value([]),
+
+        _firebaseService.isAuthenticated
+            ? _firebaseService.getAlbums()
             : Future.value([]),
       ]);
 
       state = state.copyWith(
-        albums: [...res[0], ...res[1], ...res[2]],
+        albums: [...res[0], ...res[1], ...res[2], ...res[3]],
         loading: false,
       );
 
@@ -148,6 +159,11 @@ class AlbumStateNotifier extends StateNotifier<AlbumsState> {
           _getThumbnailMedia(
             album: album,
             fetchMedia: (id) => _dropboxService.getMedia(id: id),
+          ),
+        for (final album in res[3])
+          _getThumbnailMedia(
+            album: album,
+            fetchMedia: (id) => _firebaseService.getMedia(id: id),
           ),
       ]).then(
         (value) => {
@@ -183,6 +199,8 @@ class AlbumStateNotifier extends StateNotifier<AlbumsState> {
         );
       } else if (album.source == AppMediaSource.dropbox) {
         await _dropboxService.deleteAlbum(album.id);
+      } else if (album.source == AppMediaSource.firebase) {
+        await _firebaseService.deleteAlbum(album.id);
       }
       state = state.copyWith(
         albums:

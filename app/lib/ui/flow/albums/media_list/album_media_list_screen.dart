@@ -1,3 +1,4 @@
+import 'package:data/log/logger.dart';
 import 'package:data/models/album/album.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -85,9 +86,15 @@ class _AlbumMediaListScreenState extends ConsumerState<AlbumMediaListScreen> {
                     title: context.l10n.add_items_action_title,
                     onPressed: () async {
                       context.pop();
+                      ref.read(loggerProvider).d(
+                            'Adding media to album ${state.album.name}\n${state.album.source}',
+                          );
                       final res =
                           await MediaSelectionRoute($extra: widget.album.source)
                               .push(context);
+                      ref.read(loggerProvider).d(
+                            'Added media res: $res',
+                          );
                       if (res != null && res is List<String>) {
                         await _notifier.addMediaInAlbum(medias: res);
                       }
@@ -102,6 +109,9 @@ class _AlbumMediaListScreenState extends ConsumerState<AlbumMediaListScreen> {
                     title: context.l10n.edit_album_action_title,
                     onPressed: () async {
                       context.pop();
+                      ref
+                          .read(loggerProvider)
+                          .d('Editing album ${state.album.name}');
                       final res = await AddAlbumRoute($extra: state.album)
                           .push(context);
                       if (res == true) {

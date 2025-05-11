@@ -27,4 +27,5 @@ const _$AppMediaSourceEnumMap = {
   AppMediaSource.local: 'local',
   AppMediaSource.googleDrive: 'google_drive',
   AppMediaSource.dropbox: 'dropbox',
+  AppMediaSource.firebase: 'firebase',
 };

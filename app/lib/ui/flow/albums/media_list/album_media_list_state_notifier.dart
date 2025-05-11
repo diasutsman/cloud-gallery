@@ -4,6 +4,7 @@ import 'package:data/log/logger.dart';
 import 'package:data/models/album/album.dart';
 import 'package:data/models/media/media.dart';
 import 'package:data/services/dropbox_services.dart';
+import 'package:data/services/firebase_service.dart';
 import 'package:data/services/google_drive_service.dart';
 import 'package:data/services/local_media_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,7 @@ final albumMediaListStateNotifierProvider = StateNotifierProvider.autoDispose
     ref.read(localMediaServiceProvider),
     ref.read(googleDriveServiceProvider),
     ref.read(dropboxServiceProvider),
+    ref.read(firebaseServiceProvider),
     ref.read(loggerProvider),
   ),
 );
@@ -27,6 +29,7 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
   final LocalMediaService _localMediaService;
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
+  final FirebaseService _firebaseService;
   final Logger _logger;
 
   int _loadedMediaCount = 0;
@@ -37,6 +40,7 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
     this._localMediaService,
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._logger,
   ) : super(
           AlbumMediaListState(album: album),
@@ -57,6 +61,10 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
         loadingMore: state.medias.isNotEmpty && !reload,
         error: null,
         actionError: null,
+      );
+
+      _logger.d(
+        "AlbumMediaListStateNotifier: Loading media from album: ${state.album.medias}",
       );
 
       final moreMediaIds = state.album.medias
@@ -81,6 +89,12 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
           moreMediaIds.map((id) => _dropboxService.getMedia(id: id)),
         ).then((value) => value.nonNulls.toList());
         medias = {for (final item in res) item.dropboxMediaRefId!: item};
+      } else if (state.album.source == AppMediaSource.firebase) {
+        _logger.d('Loading media from Firebase: $moreMediaIds');
+        final res = await Future.wait(
+          moreMediaIds.map((id) => _firebaseService.getMedia(id: id)),
+        ).then((value) => value.nonNulls.toList());
+        medias = {for (final item in res) item.id: item};
       }
 
       state = state.copyWith(
@@ -167,6 +181,8 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
         );
       } else if (state.album.source == AppMediaSource.dropbox) {
         await _dropboxService.deleteAlbum(state.album.id);
+      } else if (state.album.source == AppMediaSource.firebase) {
+        await _firebaseService.deleteAlbum(state.album.id);
       }
       state = state.copyWith(
         deleteAlbumSuccess: true,
@@ -226,6 +242,16 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
           medias.map((id) => _dropboxService.getMedia(id: id)),
         ).then((value) => value.nonNulls.toList());
         moreMedia = {for (final item in res) item.dropboxMediaRefId!: item};
+      } else if (state.album.source == AppMediaSource.firebase) {
+        final updatedAlbum = await _firebaseService.updateAlbum(
+          id: state.album.id,
+          mediaIds: updatedMedias,
+        );
+        final res = await Future.wait(
+          (updatedAlbum?.medias ?? medias)
+              .map((id) => _firebaseService.getMedia(id: id)),
+        ).then((value) => value.nonNulls.toList());
+        moreMedia = {for (final item in res) item.id: item};
       }
 
       state = state.copyWith(

@@ -348,7 +348,7 @@ class _$AppMediaImpl extends _AppMedia {
       @DurationJsonConverter() this.videoDuration,
       this.latitude,
       this.longitude,
-      final List<AppMediaSource> sources = const [AppMediaSource.local]})
+      final List<AppMediaSource> sources = const [AppMediaSource.firebase]})
       : _sources = sources,
         super._();
 
