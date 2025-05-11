@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:path_provider/path_provider.dart';
 import '../log/logger.dart';
 import '../models/album/album.dart';
 import '../models/media/media.dart';
@@ -262,12 +264,34 @@ class FirebaseService extends CloudProviderService {
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // Generate thumbnail for images and videos (simplified for now)
-      String? thumbnailUrl;
-      String? thumbnailPath;
-
       // Determine media type
       final type = AppMediaType.getType(mimeType: mimeType, location: path);
+
+      // Generate thumbnail for videos
+      String? thumbnailUrl;
+
+      // If the file is a video, generate a thumbnail
+      if (type.isVideo) {
+        try {
+          // Generate thumbnail from video
+          final uint8list = await VideoThumbnail.thumbnailData(
+            video: path,
+            imageFormat: ImageFormat.PNG,
+          );
+
+          if (uint8list != null) {
+            // Upload thumbnail to Firebase Storage
+            final thumbnailStoragePath = '$folderPath/$mediaId/thumbnail.jpg';
+            final thumbnailUploadTask =
+                _storage.ref(thumbnailStoragePath).putData(uint8list);
+            final thumbnailSnapshot = await thumbnailUploadTask;
+            thumbnailUrl = await thumbnailSnapshot.ref.getDownloadURL();
+          }
+        } catch (e) {
+          _logger.e('Error generating video thumbnail: $e');
+          // If thumbnail generation fails, continue with the upload process
+        }
+      }
 
       final appMedia = AppMedia(
         id: mediaId,
@@ -281,7 +305,8 @@ class FirebaseService extends CloudProviderService {
         sources: [
           AppMediaSource.firebase,
         ],
-        thumbnailLink: downloadUrl,
+        thumbnailLink: thumbnailUrl ??
+            downloadUrl, // Use thumbnail URL if available, otherwise use the original URL
       );
 
       final mediaData = appMedia.toJson();

@@ -1597,6 +1597,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.3"
+  video_thumbnail:
+    dependency: transitive
+    description:
+      name: video_thumbnail
+      sha256: "35fc82a7179be8cd55ae47fd90b2624ac6f217c5a5fa82de29a17310a940a8c3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.5"
   visibility_detector:
     dependency: "direct main"
     description:
