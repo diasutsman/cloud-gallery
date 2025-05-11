@@ -531,6 +531,166 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
     state = state.copyWith(selectedMedias: {});
   }
 
+  // FIREBASE OPERATIONS --------------------------------------------------------
+
+  /// Upload selected media to Firebase
+  Future<void> uploadToFirebase() async {
+    try {
+      // Get media from selected items that are local but not yet in Firebase
+      final selectedMedias = state.selectedMedias.entries
+          .where(
+            (element) =>
+                element.value.sources.contains(AppMediaSource.local) &&
+                !element.value.sources.contains(AppMediaSource.firebase),
+          )
+          .map((e) => e.value)
+          .toList();
+
+      if (selectedMedias.isEmpty) {
+        _logger.d('No media to upload to Firebase');
+        return;
+      }
+
+      _logger.d('Uploading ${selectedMedias.length} media items to Firebase');
+
+      // Clear selection and reset error state
+      state = state.copyWith(
+        selectedMedias: {},
+        actionError: null,
+        loading: true,
+      );
+
+      // Upload each media to Firebase
+      for (final media in selectedMedias) {
+        try {
+          await _firebaseService.uploadMedia(
+            folderId: 'users/${_firebaseService.userId}/media',
+            path: media.path,
+            mimeType: media.mimeType,
+            localRefId: media.id,
+          );
+          _logger.d('Successfully uploaded ${media.id} to Firebase');
+        } catch (e, s) {
+          _logger.e(
+            'Error uploading media to Firebase',
+            error: e,
+            stackTrace: s,
+          );
+        }
+      }
+
+      // Reload media to show the updated state
+      await loadMedias(reload: true);
+
+      state = state.copyWith(loading: false);
+    } catch (e, s) {
+      state = state.copyWith(actionError: e, loading: false);
+      _logger.e('Error in uploadToFirebase', error: e, stackTrace: s);
+    }
+  }
+
+  /// Download selected media from Firebase using MediaProcessRepo
+  Future<void> downloadFromFirebase() async {
+    try {
+      // Get media that exist in Firebase
+      final selectedMedias = state.selectedMedias.entries
+          .where(
+            (element) =>
+                element.value.sources.contains(AppMediaSource.firebase),
+          )
+          .map((e) => e.value)
+          .toList();
+
+      if (selectedMedias.isEmpty) {
+        _logger.d('No Firebase media to download');
+        return;
+      }
+
+      // Check connectivity first
+      await _connectivityHandler.checkInternetAccess();
+
+      _logger
+          .d('Downloading ${selectedMedias.length} media items from Firebase');
+
+      // Clear selection and reset error state
+      state = state.copyWith(
+        selectedMedias: {},
+        actionError: null,
+        loading: true,
+      );
+
+      // Use the default media folder path for Firebase
+      final folderId = 'users/${_firebaseService.userId}/media';
+
+      // Use the MediaProcessRepo to handle downloads (standard project pattern)
+      _mediaProcessRepo.downloadMedia(
+        folderId: folderId,
+        medias: selectedMedias,
+        provider: MediaProvider.firebase,
+      );
+
+      _logger.d('Download initiated for ${selectedMedias.length} files');
+
+      // Downloads are now being handled asynchronously by the MediaProcessRepo
+      state = state.copyWith(loading: false);
+    } catch (e, s) {
+      state = state.copyWith(actionError: e, loading: false);
+      _logger.e('Error in downloadFromFirebase', error: e, stackTrace: s);
+    }
+  }
+
+  /// Delete selected media from Firebase
+  Future<void> deleteFirebaseMedias() async {
+    try {
+      // Get media that exist in Firebase
+      final selectedMedias = state.selectedMedias.entries
+          .where(
+            (element) =>
+                element.value.sources.contains(AppMediaSource.firebase),
+          )
+          .map((e) => e.value)
+          .toList();
+
+      if (selectedMedias.isEmpty) {
+        _logger.d('No Firebase media to delete');
+        return;
+      }
+
+      _logger.d('Deleting ${selectedMedias.length} media items from Firebase');
+
+      // Clear selection and reset error state
+      state = state.copyWith(
+        selectedMedias: {},
+        actionError: null,
+        loading: true,
+      );
+
+      // Delete each media from Firebase
+      for (final media in selectedMedias) {
+        try {
+          await _firebaseService.deleteMedia(id: media.id);
+          _logger.d('Successfully deleted ${media.id} from Firebase');
+        } catch (e, s) {
+          _logger.e(
+            'Error deleting media from Firebase',
+            error: e,
+            stackTrace: s,
+          );
+        }
+      }
+
+      // Reload media to show the updated state
+      await loadMedias(reload: true);
+
+      state = state.copyWith(loading: false);
+    } catch (e, s) {
+      state = state.copyWith(actionError: e, loading: false);
+      _logger.e('Error in deleteFirebaseMedias', error: e, stackTrace: s);
+    }
+  }
+
+  // GOOGLE DRIVE OPERATIONS ----------------------------------------------------
+
   Future<void> uploadToGoogleDrive() async {
     try {
       if (state.googleAccount == null) return;

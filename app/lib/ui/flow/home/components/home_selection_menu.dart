@@ -3,13 +3,13 @@ import 'package:data/models/media/media_extension.dart';
 import '../../../../components/app_dialog.dart';
 import '../../../../components/selection_menu.dart';
 import '../../../../domain/extensions/context_extensions.dart';
-import '../../../../gen/assets.gen.dart';
+// Firebase-only implementation no longer needs the assets
 import '../home_screen_view_model.dart';
 import 'package:data/models/media/media.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+// Firebase-only implementation no longer needs SVG
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:style/extensions/context_extensions.dart';
@@ -33,6 +33,23 @@ class HomeSelectionMenu extends ConsumerWidget {
       useSystemPadding: false,
       items: [
         _clearSelectionAction(context, ref),
+        // Firebase actions
+        if (state.selectedMedias.values.any(
+          (element) =>
+              !element.sources.contains(AppMediaSource.firebase) &&
+              element.sources.contains(AppMediaSource.local),
+        ))
+          _uploadToFirebaseAction(context, ref),
+        if (state.selectedMedias.values.any(
+          (element) => element.sources.contains(AppMediaSource.firebase),
+        ))
+          _downloadFromFirebaseAction(context, ref),
+        if (state.selectedMedias.values.any(
+          (element) => element.sources.contains(AppMediaSource.firebase),
+        ))
+          _deleteMediaFromFirebaseAction(context, ref),
+        // Google Drive actions - commented out as we're focusing on Firebase
+        /*
         if (state.selectedMedias.values.any(
           (element) =>
               !element.sources.contains(AppMediaSource.googleDrive) &&
@@ -49,6 +66,9 @@ class HomeSelectionMenu extends ConsumerWidget {
             ) &&
             state.googleAccount != null)
           _deleteMediaFromGoogleDriveAction(context, ref),
+        */
+        // Dropbox actions - commented out as we're focusing on Firebase
+        /*
         if (state.selectedMedias.values.any(
           (element) =>
               !element.sources.contains(AppMediaSource.dropbox) &&
@@ -65,6 +85,7 @@ class HomeSelectionMenu extends ConsumerWidget {
             ) &&
             state.dropboxAccount != null)
           _deleteMediaFromDropboxAction(context, ref),
+        */
         if (state.selectedMedias.values.any(
           (element) => element.sources.contains(AppMediaSource.local),
         ))
@@ -88,7 +109,14 @@ class HomeSelectionMenu extends ConsumerWidget {
     );
   }
 
-  Widget _uploadToGoogleDriveAction(BuildContext context, WidgetRef ref) {
+  // Note: Google Drive upload action has been removed
+  // since we're focusing on Firebase as the primary cloud storage provider.
+
+  // Note: Dropbox actions have been removed
+  // since we're focusing on Firebase as the primary cloud storage provider.
+
+  // Firebase actions
+  Widget _uploadToFirebaseAction(BuildContext context, WidgetRef ref) {
     return SelectionMenuAction(
       icon: Stack(
         alignment: Alignment.bottomRight,
@@ -101,19 +129,21 @@ class HomeSelectionMenu extends ConsumerWidget {
               size: 22,
             ),
           ),
-          SvgPicture.asset(
-            Assets.images.icGoogleDrive,
-            width: 14,
-            height: 14,
+          // Using a simple icon for Firebase
+          Icon(
+            Icons.whatshot,
+            color: Colors.orange,
+            size: 14,
           ),
         ],
       ),
-      title: context.l10n.upload_to_google_drive_title,
+      title: 'Upload to Firebase',
       onTap: () {
         showAppAlertDialog(
           context: context,
-          title: context.l10n.upload_to_google_drive_title,
-          message: context.l10n.upload_to_google_drive_confirmation_message,
+          title: 'Upload to Firebase',
+          message:
+              'Are you sure you want to upload the selected media to Firebase?',
           actions: [
             AppAlertAction(
               title: context.l10n.common_cancel,
@@ -125,7 +155,7 @@ class HomeSelectionMenu extends ConsumerWidget {
               title: context.l10n.common_upload,
               onPressed: () {
                 context.pop();
-                ref.read(homeViewStateNotifier.notifier).uploadToGoogleDrive();
+                ref.read(homeViewStateNotifier.notifier).uploadToFirebase();
               },
             ),
           ],
@@ -134,32 +164,29 @@ class HomeSelectionMenu extends ConsumerWidget {
     );
   }
 
-  Widget _downloadFromGoogleDriveAction(BuildContext context, WidgetRef ref) {
+  Widget _downloadFromFirebaseAction(BuildContext context, WidgetRef ref) {
     return SelectionMenuAction(
       icon: Stack(
         alignment: Alignment.bottomRight,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 0, right: 8),
-            child: Icon(
-              CupertinoIcons.cloud_download,
-              color: context.colorScheme.textPrimary,
-              size: 22,
-            ),
+          Icon(
+            CupertinoIcons.cloud_download,
+            color: context.colorScheme.textPrimary,
+            size: 22,
           ),
-          SvgPicture.asset(
-            Assets.images.icGoogleDrive,
-            width: 14,
-            height: 14,
-          ),
+          // Icon(
+          //   Icons.download,
+          //   color: context.colorScheme.textPrimary,
+          //   size: 14,
+          // ),
         ],
       ),
-      title: context.l10n.download_from_google_drive_title,
+      title: 'Download',
       onTap: () async {
         showAppAlertDialog(
           context: context,
-          title: context.l10n.download_from_google_drive_title,
-          message: context.l10n.download_from_google_drive_confirmation_message,
+          title: 'Download',
+          message: 'Are you sure you want to download the selected media?',
           actions: [
             AppAlertAction(
               title: context.l10n.common_cancel,
@@ -171,9 +198,7 @@ class HomeSelectionMenu extends ConsumerWidget {
               title: context.l10n.common_download,
               onPressed: () {
                 context.pop();
-                ref
-                    .read(homeViewStateNotifier.notifier)
-                    .downloadFromGoogleDrive();
+                ref.read(homeViewStateNotifier.notifier).downloadFromFirebase();
               },
             ),
           ],
@@ -182,35 +207,29 @@ class HomeSelectionMenu extends ConsumerWidget {
     );
   }
 
-  Widget _deleteMediaFromGoogleDriveAction(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget _deleteMediaFromFirebaseAction(BuildContext context, WidgetRef ref) {
     return SelectionMenuAction(
       icon: Stack(
         alignment: Alignment.bottomRight,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 2, right: 2),
-            child: Icon(
-              CupertinoIcons.trash,
-              color: context.colorScheme.alert,
-              size: 22,
-            ),
+          Icon(
+            CupertinoIcons.trash,
+            color: context.colorScheme.alert,
+            size: 22,
           ),
-          SvgPicture.asset(
-            Assets.images.icGoogleDrive,
-            width: 14,
-            height: 14,
-          ),
+          // Icon(
+          //   Icons.download,
+          //   color: context.colorScheme.textPrimary,
+          //   size: 14,
+          // ),
         ],
       ),
-      title: context.l10n.delete_from_google_drive_title,
+      title: 'Delete',
       onTap: () {
         showAppAlertDialog(
           context: context,
-          title: context.l10n.delete_from_google_drive_title,
-          message: context.l10n.delete_from_google_drive_confirmation_message,
+          title: 'Delete',
+          message: 'Are you sure you want to delete the selected media?',
           actions: [
             AppAlertAction(
               title: context.l10n.common_cancel,
@@ -223,148 +242,7 @@ class HomeSelectionMenu extends ConsumerWidget {
               title: context.l10n.common_delete,
               onPressed: () {
                 context.pop();
-                ref
-                    .read(homeViewStateNotifier.notifier)
-                    .deleteGoogleDriveMedias();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _uploadToDropboxAction(BuildContext context, WidgetRef ref) {
-    return SelectionMenuAction(
-      icon: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 0, right: 8),
-            child: Icon(
-              CupertinoIcons.cloud_upload,
-              color: context.colorScheme.textPrimary,
-              size: 22,
-            ),
-          ),
-          SvgPicture.asset(
-            Assets.images.icDropbox,
-            width: 14,
-            height: 14,
-          ),
-        ],
-      ),
-      title: context.l10n.upload_to_dropbox_title,
-      onTap: () {
-        showAppAlertDialog(
-          context: context,
-          title: context.l10n.upload_to_dropbox_title,
-          message: context.l10n.upload_to_dropbox_confirmation_message,
-          actions: [
-            AppAlertAction(
-              title: context.l10n.common_cancel,
-              onPressed: () {
-                context.pop();
-              },
-            ),
-            AppAlertAction(
-              title: context.l10n.common_upload,
-              onPressed: () {
-                context.pop();
-                ref.read(homeViewStateNotifier.notifier).uploadToDropbox();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _downloadFromDropboxAction(BuildContext context, WidgetRef ref) {
-    return SelectionMenuAction(
-      icon: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 0, right: 8),
-            child: Icon(
-              CupertinoIcons.cloud_download,
-              color: context.colorScheme.textPrimary,
-              size: 22,
-            ),
-          ),
-          SvgPicture.asset(
-            Assets.images.icDropbox,
-            width: 14,
-            height: 14,
-          ),
-        ],
-      ),
-      title: context.l10n.download_from_dropbox_title,
-      onTap: () async {
-        showAppAlertDialog(
-          context: context,
-          title: context.l10n.download_from_dropbox_title,
-          message: context.l10n.download_from_dropbox_confirmation_message,
-          actions: [
-            AppAlertAction(
-              title: context.l10n.common_cancel,
-              onPressed: () {
-                context.pop();
-              },
-            ),
-            AppAlertAction(
-              title: context.l10n.common_download,
-              onPressed: () {
-                context.pop();
-                ref.read(homeViewStateNotifier.notifier).downloadFromDropbox();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _deleteMediaFromDropboxAction(BuildContext context, WidgetRef ref) {
-    return SelectionMenuAction(
-      icon: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 2, right: 2),
-            child: Icon(
-              CupertinoIcons.trash,
-              color: context.colorScheme.alert,
-              size: 22,
-            ),
-          ),
-          SvgPicture.asset(
-            Assets.images.icDropbox,
-            width: 14,
-            height: 14,
-          ),
-        ],
-      ),
-      title: context.l10n.delete_from_dropbox_title,
-      onTap: () {
-        showAppAlertDialog(
-          context: context,
-          title: context.l10n.delete_from_dropbox_title,
-          message: context.l10n.delete_from_dropbox_confirmation_message,
-          actions: [
-            AppAlertAction(
-              title: context.l10n.common_cancel,
-              onPressed: () {
-                context.pop();
-              },
-            ),
-            AppAlertAction(
-              isDestructiveAction: true,
-              title: context.l10n.common_delete,
-              onPressed: () {
-                context.pop();
-                ref.read(homeViewStateNotifier.notifier).deleteDropboxMedias();
+                ref.read(homeViewStateNotifier.notifier).deleteFirebaseMedias();
               },
             ),
           ],
