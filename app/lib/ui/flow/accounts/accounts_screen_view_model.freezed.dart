@@ -21,6 +21,7 @@ mixin _$AccountsState {
   String? get version => throw _privateConstructorUsedError;
   Object? get error => throw _privateConstructorUsedError;
   GoogleSignInAccount? get googleAccount => throw _privateConstructorUsedError;
+  AppDisguiseType get appDisguiseType => throw _privateConstructorUsedError;
 
   /// Create a copy of AccountsState
   /// with the given fields replaced by the non-null parameter values.
@@ -40,7 +41,8 @@ abstract class $AccountsStateCopyWith<$Res> {
       bool clearCacheLoading,
       String? version,
       Object? error,
-      GoogleSignInAccount? googleAccount});
+      GoogleSignInAccount? googleAccount,
+      AppDisguiseType appDisguiseType});
 }
 
 /// @nodoc
@@ -63,6 +65,7 @@ class _$AccountsStateCopyWithImpl<$Res, $Val extends AccountsState>
     Object? version = freezed,
     Object? error = freezed,
     Object? googleAccount = freezed,
+    Object? appDisguiseType = null,
   }) {
     return _then(_value.copyWith(
       notificationsPermissionStatus: null == notificationsPermissionStatus
@@ -82,6 +85,10 @@ class _$AccountsStateCopyWithImpl<$Res, $Val extends AccountsState>
           ? _value.googleAccount
           : googleAccount // ignore: cast_nullable_to_non_nullable
               as GoogleSignInAccount?,
+      appDisguiseType: null == appDisguiseType
+          ? _value.appDisguiseType
+          : appDisguiseType // ignore: cast_nullable_to_non_nullable
+              as AppDisguiseType,
     ) as $Val);
   }
 }
@@ -99,7 +106,8 @@ abstract class _$$AccountsStateImplCopyWith<$Res>
       bool clearCacheLoading,
       String? version,
       Object? error,
-      GoogleSignInAccount? googleAccount});
+      GoogleSignInAccount? googleAccount,
+      AppDisguiseType appDisguiseType});
 }
 
 /// @nodoc
@@ -120,6 +128,7 @@ class __$$AccountsStateImplCopyWithImpl<$Res>
     Object? version = freezed,
     Object? error = freezed,
     Object? googleAccount = freezed,
+    Object? appDisguiseType = null,
   }) {
     return _then(_$AccountsStateImpl(
       notificationsPermissionStatus: null == notificationsPermissionStatus
@@ -139,6 +148,10 @@ class __$$AccountsStateImplCopyWithImpl<$Res>
           ? _value.googleAccount
           : googleAccount // ignore: cast_nullable_to_non_nullable
               as GoogleSignInAccount?,
+      appDisguiseType: null == appDisguiseType
+          ? _value.appDisguiseType
+          : appDisguiseType // ignore: cast_nullable_to_non_nullable
+              as AppDisguiseType,
     ));
   }
 }
@@ -151,7 +164,8 @@ class _$AccountsStateImpl implements _AccountsState {
       this.clearCacheLoading = false,
       this.version,
       this.error,
-      this.googleAccount});
+      this.googleAccount,
+      this.appDisguiseType = AppDisguiseType.none});
 
   @override
   @JsonKey()
@@ -165,10 +179,13 @@ class _$AccountsStateImpl implements _AccountsState {
   final Object? error;
   @override
   final GoogleSignInAccount? googleAccount;
+  @override
+  @JsonKey()
+  final AppDisguiseType appDisguiseType;
 
   @override
   String toString() {
-    return 'AccountsState(notificationsPermissionStatus: $notificationsPermissionStatus, clearCacheLoading: $clearCacheLoading, version: $version, error: $error, googleAccount: $googleAccount)';
+    return 'AccountsState(notificationsPermissionStatus: $notificationsPermissionStatus, clearCacheLoading: $clearCacheLoading, version: $version, error: $error, googleAccount: $googleAccount, appDisguiseType: $appDisguiseType)';
   }
 
   @override
@@ -185,7 +202,9 @@ class _$AccountsStateImpl implements _AccountsState {
             (identical(other.version, version) || other.version == version) &&
             const DeepCollectionEquality().equals(other.error, error) &&
             (identical(other.googleAccount, googleAccount) ||
-                other.googleAccount == googleAccount));
+                other.googleAccount == googleAccount) &&
+            (identical(other.appDisguiseType, appDisguiseType) ||
+                other.appDisguiseType == appDisguiseType));
   }
 
   @override
@@ -195,7 +214,8 @@ class _$AccountsStateImpl implements _AccountsState {
       clearCacheLoading,
       version,
       const DeepCollectionEquality().hash(error),
-      googleAccount);
+      googleAccount,
+      appDisguiseType);
 
   /// Create a copy of AccountsState
   /// with the given fields replaced by the non-null parameter values.
@@ -212,7 +232,8 @@ abstract class _AccountsState implements AccountsState {
       final bool clearCacheLoading,
       final String? version,
       final Object? error,
-      final GoogleSignInAccount? googleAccount}) = _$AccountsStateImpl;
+      final GoogleSignInAccount? googleAccount,
+      final AppDisguiseType appDisguiseType}) = _$AccountsStateImpl;
 
   @override
   bool get notificationsPermissionStatus;
@@ -224,6 +245,8 @@ abstract class _AccountsState implements AccountsState {
   Object? get error;
   @override
   GoogleSignInAccount? get googleAccount;
+  @override
+  AppDisguiseType get appDisguiseType;
 
   /// Create a copy of AccountsState
   /// with the given fields replaced by the non-null parameter values.

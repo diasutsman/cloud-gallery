@@ -14,6 +14,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../domain/utils/app_switcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'accounts_screen_view_model.freezed.dart';
 
@@ -49,6 +51,7 @@ class AccountsStateNotifier extends StateNotifier<AccountsState> {
     this._notificationHandler,
     this._logger,
   ) : super(AccountsState(googleAccount: _authService.googleAccount)) {
+    _loadAppDisguiseType();
     init();
     updateNotificationsPermissionStatus();
   }
@@ -59,6 +62,42 @@ class AccountsStateNotifier extends StateNotifier<AccountsState> {
         _authService.onGoogleAccountChange.listen((event) {
       updateUser(event);
     });
+  }
+  
+  /// Loads the current app disguise type from SharedPreferences
+  Future<void> _loadAppDisguiseType() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final disguiseTypeIndex = prefs.getInt('app_disguise_type') ?? 0;
+      final disguiseType = AppDisguiseType.values[disguiseTypeIndex];
+      state = state.copyWith(appDisguiseType: disguiseType);
+    } catch (e) {
+      _logger.e('Error loading app disguise type: $e');
+    }
+  }
+  
+  /// Sets the app disguise type and updates the app icon/name
+  Future<void> setAppDisguiseType(AppDisguiseType disguiseType) async {
+    try {
+      state = state.copyWith(error: null);
+      
+      // Save the setting to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('app_disguise_type', disguiseType.index);
+      
+      // Update the app icon and name using AppSwitcher
+      await AppSwitcher.switchAppLauncher(disguiseType);
+      
+      // Update the state
+      state = state.copyWith(appDisguiseType: disguiseType);
+    } catch (e, s) {
+      state = state.copyWith(error: e);
+      _logger.e(
+        "AccountsStateNotifier: unable to set app disguise type",
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   @override
@@ -229,5 +268,6 @@ class AccountsState with _$AccountsState {
     String? version,
     Object? error,
     GoogleSignInAccount? googleAccount,
+    @Default(AppDisguiseType.none) AppDisguiseType appDisguiseType,
   }) = _AccountsState;
 }

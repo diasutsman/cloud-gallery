@@ -1,11 +1,4 @@
-import 'package:data/domain/config.dart';
-import '../../../components/app_page.dart';
-import '../../../domain/extensions/context_extensions.dart';
-import '../../../gen/assets.gen.dart';
-import 'accounts_screen_view_model.dart';
-import 'components/profile_section.dart';
-import 'components/settings_action_list.dart';
-import 'package:data/storage/app_preferences.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,8 +7,16 @@ import 'package:style/text/app_text_style.dart';
 import 'package:style/theme/colors.dart';
 import 'package:style/buttons/buttons_list.dart';
 import 'package:style/buttons/switch.dart';
+import 'package:data/storage/app_preferences.dart';
+import '../../../components/app_page.dart';
 import '../../../components/snack_bar.dart';
+import '../../../domain/extensions/context_extensions.dart';
+import '../../../domain/utils/app_switcher.dart';
+import '../../../gen/assets.gen.dart';
+import 'accounts_screen_view_model.dart';
 import 'components/account_tab.dart';
+import 'components/profile_section.dart';
+import 'components/settings_action_list.dart';
 
 class AccountsScreen extends ConsumerStatefulWidget {
   const AccountsScreen({super.key});
@@ -30,9 +31,125 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    notifier = ref.read(accountsStateNotifierProvider.notifier);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  /// Builds widget for app disguise options
+  Widget _buildAppDisguiseOption(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final appDisguiseType = ref.watch(
+          accountsStateNotifierProvider
+              .select((value) => value.appDisguiseType),
+        );
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListTile(
+            leading: _getDisguiseIcon(appDisguiseType),
+            title: const Text('App Disguise'),
+            subtitle: Text('Currently: ${_getDisguiseName(appDisguiseType)}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showDisguiseOptionsDialog(context),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Returns the appropriate icon for the current disguise type
+  Widget _getDisguiseIcon(AppDisguiseType disguiseType) {
+    switch (disguiseType) {
+      case AppDisguiseType.none:
+        return const Icon(Icons.visibility_off);
+      case AppDisguiseType.calculator:
+        return const Icon(Icons.calculate);
+      case AppDisguiseType.calendar:
+        return const Icon(Icons.calendar_today);
+      case AppDisguiseType.notes:
+        return const Icon(Icons.note);
+      case AppDisguiseType.weather:
+        return const Icon(Icons.wb_sunny);
+      case AppDisguiseType.clock:
+        return const Icon(Icons.access_time);
+    }
+  }
+
+  /// Returns a user-friendly name for the disguise type
+  String _getDisguiseName(AppDisguiseType disguiseType) {
+    switch (disguiseType) {
+      case AppDisguiseType.none:
+        return 'Default';
+      case AppDisguiseType.calculator:
+        return 'Calculator';
+      case AppDisguiseType.calendar:
+        return 'Calendar';
+      case AppDisguiseType.notes:
+        return 'Notes';
+      case AppDisguiseType.weather:
+        return 'Weather';
+      case AppDisguiseType.clock:
+        return 'Clock';
+    }
+  }
+
+  /// Shows a dialog for the user to choose app disguise options
+  void _showDisguiseOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Choose App Disguise'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                _buildDisguiseOption(context, AppDisguiseType.none),
+                _buildDisguiseOption(context, AppDisguiseType.calculator),
+                _buildDisguiseOption(context, AppDisguiseType.calendar),
+                _buildDisguiseOption(context, AppDisguiseType.notes),
+                _buildDisguiseOption(context, AppDisguiseType.weather),
+                _buildDisguiseOption(context, AppDisguiseType.clock),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Builds a single disguise option for the dialog
+  Widget _buildDisguiseOption(
+      BuildContext context, AppDisguiseType disguiseType) {
+    final currentDisguiseType = ref.watch(
+      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
+    );
+
+    return ListTile(
+      leading: _getDisguiseIcon(disguiseType),
+      title: Text(_getDisguiseName(disguiseType)),
+      trailing: currentDisguiseType == disguiseType
+          ? const Icon(Icons.check, color: Colors.green)
+          : null,
+      onTap: () {
+        ref
+            .read(accountsStateNotifierProvider.notifier)
+            .setAppDisguiseType(disguiseType);
+        Navigator.of(context).pop();
+      },
+    );
   }
 
   void _errorObserver() {
@@ -55,7 +172,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
           next.error == null) {
         showSnackBar(
           context: context,
-          text: context.l10n.clear_cache_succeed_message,
+          text: "Cache cleared successfully",
         );
       }
     });
@@ -69,17 +186,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     _errorObserver();
     _clearCacheSucceedObserver();
     return AppPage(
-      title: context.l10n.accounts_title,
+      title: "Accounts",
       bodyBuilder: (context) {
         return ListView(
           padding: context.systemPadding +
@@ -95,6 +206,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
             // const SizedBox(height: 8),
             // _dropboxAccount(context: context),
             // const SizedBox(height: 8),
+            _buildAppDisguiseOption(context),
+            const SizedBox(height: 16),
             const SettingsActionList(),
             const SizedBox(height: 16),
             _buildVersion(context: context),
@@ -283,21 +396,18 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
     );
   }
 
-  Widget _buildVersion({required BuildContext context}) => Consumer(
-        builder: (context, ref, child) {
-          final version = ref.watch(
-            accountsStateNotifierProvider.select((value) => value.version),
-          );
-          return Visibility(
-            visible: version != null,
-            child: Text(
-              "${context.l10n.version_title} $version",
-              style: AppTextStyles.body2.copyWith(
-                color: context.colorScheme.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          );
-        },
-      );
+  Widget _buildVersion({required BuildContext context}) {
+    final version = ref.watch(
+      accountsStateNotifierProvider.select((value) => value.version ?? ''),
+    );
+    return Center(
+      child: Text(
+        "Version: $version",
+        style: AppTextStyles.body2.copyWith(
+          color: context.colorScheme.textSecondary,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
 }
