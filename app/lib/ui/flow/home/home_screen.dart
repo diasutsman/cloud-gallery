@@ -130,7 +130,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (index == 0) {
             return Column(
               children: [
-                const HomeScreenHints(),
+                // const HomeScreenHints(),
                 const NoInternetConnectionHint(),
                 if (state.medias.isEmpty)
                   Padding(
