@@ -82,9 +82,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (state.isLoading && !state.hasMedia) {
       return const Center(child: AppCircularProgressIndicator());
-    } else if (!state.hasMedia && !state.hasLocalMediaAccess) {
-      return const NoLocalMediasAccessScreen();
-    } else if (state.error != null && !state.hasMedia) {
+    }
+
+    //  else if (!state.hasMedia && !state.hasLocalMediaAccess) {
+    //   return const NoLocalMediasAccessScreen();
+    // }
+    else if (state.error != null && !state.hasMedia) {
       return ErrorScreen(
         error: state.error!,
         onRetryTap: () => _notifier.loadMedias(reload: true),

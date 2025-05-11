@@ -6,6 +6,7 @@ import 'package:data/models/media_process/media_process.dart';
 import 'package:data/services/dropbox_services.dart';
 import 'package:data/models/media/media.dart';
 import 'package:data/services/auth_service.dart';
+import 'package:data/services/firebase_service.dart';
 import 'package:data/services/google_drive_service.dart';
 import 'package:data/services/local_media_service.dart';
 import 'package:data/storage/app_preferences.dart';
@@ -27,6 +28,7 @@ final homeViewStateNotifier =
     ref.read(localMediaServiceProvider),
     ref.read(googleDriveServiceProvider),
     ref.read(dropboxServiceProvider),
+    ref.read(firebaseServiceProvider),
     ref.read(mediaProcessRepoProvider),
     ref.read(loggerProvider),
     ref.read(connectivityHandlerProvider),
@@ -55,38 +57,48 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
   final Logger _logger;
   final GoogleDriveService _googleDriveService;
   final DropboxService _dropboxService;
+  final FirebaseService _firebaseService;
   final LocalMediaService _localMediaService;
   final MediaProcessRepo _mediaProcessRepo;
   final ConnectivityHandler _connectivityHandler;
 
-  // Local
+  // Variables used to track the Firebase media loading process
+  // Note: We've commented out other media source variables since we're only using Firebase now
+
+  /* Uncomment if needed for local media
   int _localMediaCount = 0;
   bool _localMaxLoaded = false;
+  */
 
-  // Google Drive
+  // Keep this uncommented but unused - needed for references elsewhere in the code
   String? _backUpFolderId;
+
+  /* Uncomment if needed for Google Drive
   String? _googleDrivePageToken;
   bool _googleDriveMaxLoaded = false;
-  final List<AppMedia> _googleDriveMediasWithLocalRef = [];
+  Set<AppMedia> _googleDriveMediasWithLocalRef = {};
+  */
 
-  // Dropbox
+  /* Uncomment if needed for Dropbox
   String? _dropboxPageToken;
   bool _dropboxMaxLoaded = false;
   final List<AppMedia> _dropboxMediasWithLocalRef = [];
+  */
 
   HomeViewStateNotifier(
     this._localMediaService,
     this._googleDriveService,
     this._dropboxService,
+    this._firebaseService,
     this._mediaProcessRepo,
     this._logger,
     this._connectivityHandler,
-    DropboxAccount? _dropboxAccount,
-    GoogleSignInAccount? _googleAccount,
+    DropboxAccount? dropboxAccount,
+    GoogleSignInAccount? googleSignInAccount,
   ) : super(
           HomeViewState(
-            dropboxAccount: _dropboxAccount,
-            googleAccount: _googleAccount,
+            dropboxAccount: dropboxAccount,
+            googleAccount: googleSignInAccount,
           ),
         ) {
     _init();
@@ -280,6 +292,8 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
     try {
       // Reset all the variables if reload is true
       if (reload) {
+        // Comment out non-Firebase related variables
+        /*
         _localMediaCount = 0;
         _localMaxLoaded = false;
         _googleDrivePageToken = null;
@@ -288,22 +302,20 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
         _dropboxPageToken = null;
         _dropboxMaxLoaded = false;
         _dropboxMediasWithLocalRef.clear();
+        */
       }
 
-      // Request local media permission and internet connection
-      final res = await Future.wait([
-        _localMediaService.requestPermission(),
-        _connectivityHandler.hasInternetAccess(),
-      ]);
-
-      final hasLocalMediaAccess = res[0];
-      final hasInternet = res[1];
+      // Request internet connection only (no need for local media permission)
+      final hasInternet = await _connectivityHandler.hasInternetAccess();
 
       state = state.copyWith(
-        hasLocalMediaAccess: hasLocalMediaAccess,
         hasInternet: hasInternet,
+        // No need to update local media access
+        // hasLocalMediaAccess: hasLocalMediaAccess,
       );
 
+      // Comment out local media loading
+      /*
       // Load local media if access is granted and not max loaded
       final localMedia = !hasLocalMediaAccess || _localMaxLoaded
           ? <AppMedia>[]
@@ -331,7 +343,34 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
         ),
         lastLocalMediaId: localMedia.isNotEmpty ? localMedia.last.id : null,
       );
+      */
 
+      // Load media from Firebase
+      List<AppMedia> firebaseMedias = [];
+
+      if (hasInternet) {
+        // Load all media from Firebase
+        _logger.d("Loading media from Firebase");
+        firebaseMedias = await _firebaseService.getMedias();
+        _logger.d("Loaded ${firebaseMedias.length} media items from Firebase");
+      }
+
+      // Update state with Firebase media
+      state = state.copyWith(
+        loading: false,
+        medias: sortMedias(
+          medias: reload
+              ? firebaseMedias
+              : [
+                  ...state.medias.values.expand((element) => element.values),
+                  ...firebaseMedias,
+                ],
+        ),
+        cloudLoading: false,
+      );
+
+      // Comment out Google Drive and Dropbox related code
+      /*
       // Here we store the only cloud based medias.
       final List<AppMedia> cloudBasedMedias = [];
 
@@ -441,6 +480,7 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
         medias: sortMedias(medias: [...allMergedMedias, ...cloudBasedMedias]),
         cloudLoading: false,
       );
+      */
     } catch (e, s) {
       state = state.copyWith(
         error: state.medias.isEmpty ? e : null,
@@ -449,7 +489,7 @@ class HomeViewStateNotifier extends StateNotifier<HomeViewState>
         cloudLoading: false,
       );
       _logger.e(
-        "HomeViewStateNotifier: unable to load medias",
+        "HomeViewStateNotifier: unable to load media from Firebase",
         error: e,
         stackTrace: s,
       );
