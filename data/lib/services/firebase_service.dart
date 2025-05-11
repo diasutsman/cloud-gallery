@@ -2,14 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
+import 'package:exif/exif.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_video_info/flutter_video_info.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:path_provider/path_provider.dart';
 import '../log/logger.dart';
 import '../models/album/album.dart';
 import '../models/media/media.dart';
@@ -272,16 +273,42 @@ class FirebaseService extends CloudProviderService {
       // Determine media type
       final type = AppMediaType.getType(mimeType: mimeType, location: path);
 
-      // Generate thumbnail for videos
+      // Variables for media metadata
       String? thumbnailUrl;
+      Duration? videoDuration;
+      double? displayHeight;
+      double? displayWidth;
+      double? latitude;
+      double? longitude;
+      AppMediaOrientation? orientation;
 
-      // If the file is a video, generate a thumbnail
+      // Process based on media type
       if (type.isVideo) {
+        // Extract video metadata
+        final videoInfo = FlutterVideoInfo();
+
         try {
+          // Extract video info
+          final info = await videoInfo.getVideoInfo(path);
+
+          if (info != null) {
+            // Extract duration
+            videoDuration = Duration(milliseconds: info.duration?.toInt() ?? 0);
+
+            // Extract dimensions
+            displayWidth = info.width?.toDouble();
+            displayHeight = info.height?.toDouble();
+
+            _logger.d(
+              'Video info extracted: duration=${videoDuration.inSeconds}s, width=$displayWidth, height=$displayHeight',
+            );
+          }
+
           // Generate thumbnail from video
           final uint8list = await VideoThumbnail.thumbnailData(
             video: path,
             imageFormat: ImageFormat.PNG,
+            maxWidth: info?.width ?? 720,
           );
 
           if (uint8list != null) {
@@ -292,9 +319,110 @@ class FirebaseService extends CloudProviderService {
             final thumbnailSnapshot = await thumbnailUploadTask;
             thumbnailUrl = await thumbnailSnapshot.ref.getDownloadURL();
           }
+
+          orientation = info?.orientation == 0 || info?.orientation == 180
+              ? AppMediaOrientation.portrait
+              : info?.orientation == 90 || info?.orientation == 270
+                  ? AppMediaOrientation.landscape
+                  : null;
         } catch (e) {
-          _logger.e('Error generating video thumbnail: $e');
-          // If thumbnail generation fails, continue with the upload process
+          _logger.e('Error processing video: $e');
+          // If processing fails, continue with the upload without video metadata
+        }
+      } else if (type.isImage) {
+        // Extract image metadata using exif
+        try {
+          final bytes = await File(path).readAsBytes();
+          final tags = await readExifFromBytes(bytes);
+
+          // Extract image dimensions
+          try {
+            // Try to get image dimensions from various possible EXIF tags
+            if (tags.containsKey('Image ImageWidth')) {
+              final widthStr = tags['Image ImageWidth']?.toString();
+              if (widthStr != null) {
+                final width =
+                    int.tryParse(widthStr.replaceAll(RegExp(r'[^0-9]'), ''));
+                if (width != null) displayWidth = width.toDouble();
+              }
+            }
+
+            if (tags.containsKey('Image ImageLength')) {
+              final heightStr = tags['Image ImageLength']?.toString();
+              if (heightStr != null) {
+                final height =
+                    int.tryParse(heightStr.replaceAll(RegExp(r'[^0-9]'), ''));
+                if (height != null) displayHeight = height.toDouble();
+              }
+            }
+
+            // Fallback to other dimension tags if needed
+            if (displayWidth == null &&
+                tags.containsKey('EXIF ExifImageWidth')) {
+              final widthStr = tags['EXIF ExifImageWidth']?.toString();
+              if (widthStr != null) {
+                final width =
+                    int.tryParse(widthStr.replaceAll(RegExp(r'[^0-9]'), ''));
+                if (width != null) displayWidth = width.toDouble();
+              }
+            }
+
+            if (displayHeight == null &&
+                tags.containsKey('EXIF ExifImageLength')) {
+              final heightStr = tags['EXIF ExifImageLength']?.toString();
+              if (heightStr != null) {
+                final height =
+                    int.tryParse(heightStr.replaceAll(RegExp(r'[^0-9]'), ''));
+                if (height != null) displayHeight = height.toDouble();
+              }
+            }
+
+            _logger.d('Image dimensions: ${displayWidth}x$displayHeight');
+          } catch (e) {
+            _logger.e('Error extracting image dimensions: $e');
+          }
+
+          // Extract GPS coordinates if available
+          try {
+            if (tags.containsKey('GPS GPSLatitude') &&
+                tags.containsKey('GPS GPSLongitude')) {
+              final latRefTag = tags['GPS GPSLatitudeRef'];
+              final lngRefTag = tags['GPS GPSLongitudeRef'];
+
+              final latTag = tags['GPS GPSLatitude'];
+              final lngTag = tags['GPS GPSLongitude'];
+
+              if (latTag != null && lngTag != null) {
+                // Extract direction (N/S, E/W)
+                final latRef = latRefTag?.toString() ?? '';
+                final lngRef = lngRefTag?.toString() ?? '';
+
+                // Parse the coordinates
+                final latStr = latTag.toString();
+                final lngStr = lngTag.toString();
+
+                // Parse GPS coordinates - this is a simplified approach for demo
+                // A real implementation would properly parse the DMS format
+                latitude = _parseGpsFromString(latStr);
+                longitude = _parseGpsFromString(lngStr);
+
+                // Apply reference direction
+                if (latRef.contains('S')) latitude = -latitude;
+                if (lngRef.contains('W')) longitude = -longitude;
+
+                _logger.d('Extracted GPS coordinates: $latitude, $longitude');
+              }
+            }
+          } catch (e) {
+            _logger.e('Error extracting GPS coordinates: $e');
+          }
+
+          _logger.d(
+            'Image info extracted: width=$displayWidth, height=$displayHeight, lat=$latitude, long=$longitude',
+          );
+        } catch (e) {
+          _logger.e('Error extracting image metadata: $e');
+          // Continue with upload even if metadata extraction fails
         }
       }
 
@@ -310,8 +438,14 @@ class FirebaseService extends CloudProviderService {
         sources: [
           AppMediaSource.firebase,
         ],
+        displayHeight: displayHeight,
+        displayWidth: displayWidth,
+        videoDuration: videoDuration,
+        latitude: latitude,
+        longitude: longitude,
         thumbnailLink: thumbnailUrl ??
             downloadUrl, // Use thumbnail URL if available, otherwise use the original URL
+        orientation: orientation,
       );
 
       final mediaData = appMedia.toJson();
@@ -733,6 +867,46 @@ class FirebaseService extends CloudProviderService {
   // CONVERSION HELPERS --------------------------------------------------------
 
   // The _convertToAppMedia method has been replaced with the static factory method AppMedia.fromFirebase
+
+  /// Helper method to parse GPS coordinates from EXIF string
+  double _parseGpsFromString(String gpsStr) {
+    try {
+      // GPS data can be in various formats, try to extract numeric values
+      // Pattern for GPS coordinates in EXIF data often contains numbers like "42/1 15/1 33/1"
+      final numbers =
+          RegExp(r'\d+').allMatches(gpsStr).map((m) => m.group(0)).toList();
+
+      if (numbers.isEmpty) return 0.0;
+
+      // If we have at least 3 numbers, assume DMS format (degrees, minutes, seconds)
+      if (numbers.length >= 6) {
+        // Format often has numerator/denominator pairs
+        final degrees = double.parse(numbers[0]!) /
+            (double.parse(numbers[1]!) != 0 ? double.parse(numbers[1]!) : 1);
+        final minutes = double.parse(numbers[2]!) /
+            (double.parse(numbers[3]!) != 0 ? double.parse(numbers[3]!) : 1);
+        final seconds = double.parse(numbers[4]!) /
+            (double.parse(numbers[5]!) != 0 ? double.parse(numbers[5]!) : 1);
+
+        return degrees + (minutes / 60) + (seconds / 3600);
+      }
+      // If we have fewer numbers, try a simpler approach
+      else if (numbers.length >= 2) {
+        // Try to interpret as degrees and minutes
+        final degrees = double.parse(numbers[0]!);
+        final minutes = double.parse(numbers[1]!) / 60;
+
+        return degrees + minutes;
+      }
+      // If we only have one number, use it directly
+      else {
+        return double.parse(numbers[0]!);
+      }
+    } catch (e) {
+      _logger.e('Error parsing GPS coordinate string: $e');
+      return 0.0;
+    }
+  }
 
   /// Convert Firestore data to Album model
   Album _convertToAlbum(Map<String, dynamic> data, String docId) {

@@ -248,7 +248,17 @@ class AppMedia with _$AppMedia {
 
     // Determine orientation
     AppMediaOrientation? orientation;
-    if (data['displayHeight'] != null && data['displayWidth'] != null) {
+    // First check if orientation is explicitly stored
+    if (data['orientation'] != null) {
+      // Get orientation from stored value
+      final orientationValue = data['orientation'] as String;
+      orientation = AppMediaOrientation.values.firstWhere(
+        (o) => o.value == orientationValue,
+        orElse: () => AppMediaOrientation.landscape,
+      );
+    }
+    // Fallback to calculating orientation from dimensions if needed
+    else if (data['displayHeight'] != null && data['displayWidth'] != null) {
       final height = (data['displayHeight'] as num).toDouble();
       final width = (data['displayWidth'] as num).toDouble();
       orientation = height > width
@@ -269,10 +279,19 @@ class AppMedia with _$AppMedia {
 
     // Convert video duration
     Duration? videoDuration;
-    if (type.isVideo && data['durationMillis'] != null) {
-      videoDuration = Duration(
-        milliseconds: (data['durationMillis'] as num).toInt(),
-      );
+    if (type.isVideo) {
+      // Check for duration in the format stored by DurationJsonConverter
+      if (data['videoDuration'] != null) {
+        videoDuration = Duration(
+          milliseconds: (data['videoDuration'] as num).toInt(),
+        );
+      } 
+      // Fallback to the old format for backwards compatibility
+      else if (data['durationMillis'] != null) {
+        videoDuration = Duration(
+          milliseconds: (data['durationMillis'] as num).toInt(),
+        );
+      }
     }
 
     return AppMedia(

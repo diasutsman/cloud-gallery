@@ -9,6 +9,7 @@ firebase_storage=/home/du/.pub-cache/hosted/pub.dev/firebase_storage-12.4.5/
 firebase_storage_web=/home/du/.pub-cache/hosted/pub.dev/firebase_storage_web-3.10.12/
 flutter_local_notifications=/home/du/.pub-cache/hosted/pub.dev/flutter_local_notifications-18.0.1/
 flutter_local_notifications_linux=/home/du/.pub-cache/hosted/pub.dev/flutter_local_notifications_linux-5.0.0/
+flutter_video_info=/home/du/.pub-cache/hosted/pub.dev/flutter_video_info-1.3.3/
 google_sign_in=/home/du/.pub-cache/hosted/pub.dev/google_sign_in-6.3.0/
 google_sign_in_android=/home/du/.pub-cache/hosted/pub.dev/google_sign_in_android-6.2.1/
 google_sign_in_ios=/home/du/.pub-cache/hosted/pub.dev/google_sign_in_ios-5.9.0/
