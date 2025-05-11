@@ -159,7 +159,11 @@ class MediaSelectionStateNotifier extends StateNotifier<MediaSelectionState> {
 
         final groupedMedias = groupBy<AppMedia, DateTime>(
           [...state.medias.values.expand((element) => element), ...medias],
-          (media) => media.createdTime ?? media.modifiedTime ?? DateTime.now(),
+          (media) => DateTime(
+            (media.createdTime ?? media.modifiedTime ?? DateTime.now()).year,
+            (media.createdTime ?? media.modifiedTime ?? DateTime.now()).month,
+            (media.createdTime ?? media.modifiedTime ?? DateTime.now()).day,
+          ),
         );
 
         state = state.copyWith(
