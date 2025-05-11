@@ -90,7 +90,7 @@ class FirebaseService extends CloudProviderService {
       _logger.d('Media data: $data');
       if (data['userId'] != _userId) return null; // Security check
 
-      return _convertToAppMedia(data, docSnapshot.id);
+      return AppMedia.fromFirebase(data, docSnapshot.id);
     } catch (e, st) {
       debugPrint('Error getting media from Firebase: $e');
       debugPrint('Error getting media from Firebase stack trace: $st');
@@ -140,8 +140,10 @@ class FirebaseService extends CloudProviderService {
       // Convert documents to AppMedia objects
       return querySnapshot.docs
           .map(
-            (doc) =>
-                _convertToAppMedia(doc.data() as Map<String, dynamic>, doc.id),
+            (doc) => AppMedia.fromFirebase(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .toList();
     } catch (e, st) {
@@ -174,7 +176,10 @@ class FirebaseService extends CloudProviderService {
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return _convertToAppMedia(doc.data() as Map<String, dynamic>, doc.id);
+        return AppMedia.fromFirebase(
+          doc.data() as Map<String, dynamic>,
+          doc.id,
+        );
       }).toList();
     });
   }
@@ -338,8 +343,10 @@ class FirebaseService extends CloudProviderService {
 
       return querySnapshot.docs
           .map(
-            (doc) =>
-                _convertToAppMedia(doc.data() as Map<String, dynamic>, doc.id),
+            (doc) => AppMedia.fromFirebase(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .toList();
     } catch (e) {
@@ -431,8 +438,10 @@ class FirebaseService extends CloudProviderService {
 
         mediaList.addAll(
           querySnapshot.docs.map(
-            (doc) =>
-                _convertToAppMedia(doc.data() as Map<String, dynamic>, doc.id),
+            (doc) => AppMedia.fromFirebase(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           ),
         );
       }
@@ -723,80 +732,7 @@ class FirebaseService extends CloudProviderService {
 
   // CONVERSION HELPERS --------------------------------------------------------
 
-  /// Convert Firestore data to AppMedia model
-  AppMedia _convertToAppMedia(Map<String, dynamic> data, String docId) {
-    _logger.d('Media data: $data');
-    // Determine media type
-    final mimeType = data['mimeType'] as String?;
-    final path = data['path'] as String;
-    final typeString = data['type'] as String?;
-
-    final type = typeString != null
-        ? AppMediaType.values.firstWhere(
-            (t) => t.value == typeString,
-            orElse: () =>
-                AppMediaType.getType(mimeType: mimeType, location: path),
-          )
-        : AppMediaType.getType(mimeType: mimeType, location: path);
-
-    // Determine orientation
-    AppMediaOrientation? orientation;
-    if (data['displayHeight'] != null && data['displayWidth'] != null) {
-      final height = (data['displayHeight'] as num).toDouble();
-      final width = (data['displayWidth'] as num).toDouble();
-      orientation = height > width
-          ? AppMediaOrientation.portrait
-          : AppMediaOrientation.landscape;
-    }
-
-    // Convert timestamps
-    DateTime? createdTime;
-    if (data['createdTime'] != null) {
-      createdTime = (data['createdTime'] as Timestamp).toDate();
-    }
-
-    DateTime? modifiedTime;
-    if (data['modifiedTime'] != null) {
-      modifiedTime = (data['modifiedTime'] as Timestamp).toDate();
-    }
-
-    // Convert video duration
-    Duration? videoDuration;
-    if (type.isVideo && data['durationMillis'] != null) {
-      videoDuration = Duration(
-        milliseconds: (data['durationMillis'] as num).toInt(),
-      );
-    }
-
-    return AppMedia(
-      id: docId,
-      path: path,
-      name: data['name'] as String?,
-      thumbnailLink: data['thumbnailLink'] as String?,
-      displayHeight: data['displayHeight'] != null
-          ? (data['displayHeight'] as num).toDouble()
-          : null,
-      displayWidth: data['displayWidth'] != null
-          ? (data['displayWidth'] as num).toDouble()
-          : null,
-      type: type,
-      mimeType: mimeType,
-      createdTime: createdTime,
-      modifiedTime: modifiedTime,
-      orientation: orientation,
-      size: data['size'] as String?,
-      videoDuration: videoDuration,
-      latitude: data['latitude'] != null
-          ? (data['latitude'] as num).toDouble()
-          : null,
-      longitude: data['longitude'] != null
-          ? (data['longitude'] as num).toDouble()
-          : null,
-      sources: [
-        AppMediaSource.firebase,
-      ],
-    );
-  }
+  // The _convertToAppMedia method has been replaced with the static factory method AppMedia.fromFirebase
 
   /// Convert Firestore data to Album model
   Album _convertToAlbum(Map<String, dynamic> data, String docId) {
@@ -907,8 +843,10 @@ class FirebaseService extends CloudProviderService {
       // Convert to AppMedia objects
       return querySnapshot.docs
           .map(
-            (doc) =>
-                _convertToAppMedia(doc.data() as Map<String, dynamic>, doc.id),
+            (doc) => AppMedia.fromFirebase(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .toList();
     } catch (e) {
@@ -952,8 +890,10 @@ class FirebaseService extends CloudProviderService {
       // Convert to AppMedia objects
       final mediaList = docs
           .map(
-            (doc) =>
-                _convertToAppMedia(doc.data() as Map<String, dynamic>, doc.id),
+            (doc) => AppMedia.fromFirebase(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .toList();
 

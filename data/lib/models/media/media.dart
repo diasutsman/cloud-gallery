@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:googleapis/drive/v3.dart' as drive show File;
 import 'package:photo_manager/photo_manager.dart' show AssetEntity;
@@ -227,6 +228,80 @@ class AppMedia with _$AppMedia {
       createdTime: DateTime.parse(json['client_modified']),
       type: AppMediaType.getType(location: json['path_display']),
       sources: [AppMediaSource.dropbox],
+    );
+  }
+
+  /// Convert Firestore data to AppMedia model
+  static AppMedia fromFirebase(Map<String, dynamic> data, String docId) {
+    // Determine media type
+    final mimeType = data['mimeType'] as String?;
+    final path = data['path'] as String;
+    final typeString = data['type'] as String?;
+
+    final type = typeString != null
+        ? AppMediaType.values.firstWhere(
+            (t) => t.value == typeString,
+            orElse: () =>
+                AppMediaType.getType(mimeType: mimeType, location: path),
+          )
+        : AppMediaType.getType(mimeType: mimeType, location: path);
+
+    // Determine orientation
+    AppMediaOrientation? orientation;
+    if (data['displayHeight'] != null && data['displayWidth'] != null) {
+      final height = (data['displayHeight'] as num).toDouble();
+      final width = (data['displayWidth'] as num).toDouble();
+      orientation = height > width
+          ? AppMediaOrientation.portrait
+          : AppMediaOrientation.landscape;
+    }
+
+    // Convert timestamps
+    DateTime? createdTime;
+    if (data['createdTime'] != null) {
+      createdTime = (data['createdTime'] as Timestamp).toDate();
+    }
+
+    DateTime? modifiedTime;
+    if (data['modifiedTime'] != null) {
+      modifiedTime = (data['modifiedTime'] as Timestamp).toDate();
+    }
+
+    // Convert video duration
+    Duration? videoDuration;
+    if (type.isVideo && data['durationMillis'] != null) {
+      videoDuration = Duration(
+        milliseconds: (data['durationMillis'] as num).toInt(),
+      );
+    }
+
+    return AppMedia(
+      id: docId,
+      path: path,
+      name: data['name'] as String?,
+      thumbnailLink: data['thumbnailLink'] as String?,
+      displayHeight: data['displayHeight'] != null
+          ? (data['displayHeight'] as num).toDouble()
+          : null,
+      displayWidth: data['displayWidth'] != null
+          ? (data['displayWidth'] as num).toDouble()
+          : null,
+      type: type,
+      mimeType: mimeType,
+      createdTime: createdTime,
+      modifiedTime: modifiedTime,
+      orientation: orientation,
+      size: data['size'] as String?,
+      videoDuration: videoDuration,
+      latitude: data['latitude'] != null
+          ? (data['latitude'] as num).toDouble()
+          : null,
+      longitude: data['longitude'] != null
+          ? (data['longitude'] as num).toDouble()
+          : null,
+      sources: [
+        AppMediaSource.firebase,
+      ],
     );
   }
 }
