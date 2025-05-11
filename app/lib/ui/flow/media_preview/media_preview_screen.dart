@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:data/storage/app_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:style/animations/dismissible_page.dart';
 import 'package:style/theme/theme.dart';
 import '../../../components/app_page.dart';
@@ -280,6 +281,9 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
                         width: double.infinity,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
+                          Logger().e(
+                            'Error loading image: $error, st: $stackTrace',
+                          );
                           return AppPage(
                             body: PlaceHolderScreen(
                               title: context.l10n.unable_to_load_media_error,
@@ -346,7 +350,9 @@ class _MediaPreviewState extends ConsumerState<MediaPreview> {
         child: LocalMediaImagePreview(media: media, heroTag: widget.heroTag),
       );
     } else if (media.type.isImage &&
-        (media.isGoogleDriveStored || media.isDropboxStored)) {
+        (media.isGoogleDriveStored ||
+            media.isDropboxStored ||
+            media.isFirebaseStored)) {
       return DismissiblePage(
         backgroundColor: context.colorScheme.surface,
         onScaleChange: (scale) {

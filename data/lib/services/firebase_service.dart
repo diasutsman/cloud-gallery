@@ -747,7 +747,7 @@ class FirebaseService extends CloudProviderService {
       id: docId,
       path: path,
       name: data['name'] as String?,
-      thumbnailLink: data['thumbnailUrl'] as String?,
+      thumbnailLink: data['thumbnailLink'] as String?,
       displayHeight: data['displayHeight'] != null
           ? (data['displayHeight'] as num).toDouble()
           : null,
@@ -768,8 +768,8 @@ class FirebaseService extends CloudProviderService {
           ? (data['longitude'] as num).toDouble()
           : null,
       sources: [
-        AppMediaSource.local,
-      ], // Marking as "local" for UI compatibility
+        AppMediaSource.firebase,
+      ],
     );
   }
 

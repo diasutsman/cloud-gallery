@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:data/log/logger.dart';
 import 'package:data/models/isolate/isolate_parameters.dart';
 import 'package:data/models/media/media.dart';
 import 'package:data/models/media/media_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// A custom ImageProvider for fetching [AppMedia] images with caching in local storage.
@@ -69,6 +71,10 @@ class AppMediaImageProvider extends ImageProvider<AppMediaImageProvider> {
       if (Platform.isIOS) {
         await cacheFile.create(recursive: true);
       }
+
+      Logger().d('Loading image for media: ${media.sources}');
+      Logger().d('Loading image for media: ${media.thumbnailLink}');
+      Logger().d('Loading image for media: ${media.dropboxMediaRefId}');
 
       if (media.sources.contains(AppMediaSource.local)) {
         // If the media is local, generate thumbnail from the local asset and cache it.

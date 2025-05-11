@@ -104,6 +104,9 @@ extension AppMediaExtension on AppMedia {
   bool get isDropboxStored =>
       sources.contains(AppMediaSource.dropbox) && sources.length == 1;
 
+  bool get isFirebaseStored =>
+      sources.contains(AppMediaSource.firebase) && sources.length == 1;
+
   bool get isCommonStored => sources.length > 1;
 
   String get extension {
