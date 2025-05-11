@@ -146,6 +146,8 @@ class AlbumMediaListStateNotifier extends StateNotifier<AlbumMediaListState> {
             await _googleDriveService.getAlbums(folderId: _backupFolderId!);
       } else if (state.album.source == AppMediaSource.dropbox) {
         albums = await _dropboxService.getAlbums();
+      } else if (state.album.source == AppMediaSource.firebase) {
+        albums = await _firebaseService.getAlbums();
       } else {
         albums = await _localMediaService.getAlbums();
       }
