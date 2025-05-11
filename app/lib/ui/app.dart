@@ -1,7 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'navigation/app_route.dart';
 import '../domain/extensions/context_extensions.dart';
-import '../domain/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,28 +25,9 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
   late GoRouter _router;
   late NotificationHandler _notificationHandler;
 
+  // Always start with splash screen, which will then handle auth checking
   String _configureInitialRoute() {
-    final isOnBoardComplete = ref.read(AppPreferences.isOnBoardComplete);
-    final authState = ref.read(authStateProvider);
-
-    // First check if onboarding is complete
-    // if (!isOnBoardComplete) {
-    //   return AppRoutePath.onBoard;
-    // }
-
-    // Then check authentication state
-    return authState.when(
-      data: (user) {
-        // If user is not logged in, redirect to login
-        if (user == null) {
-          return AppRoutePath.login;
-        }
-        // User is logged in, go to home
-        return AppRoutePath.home;
-      },
-      loading: () => AppRoutePath.login,
-      error: (_, __) => AppRoutePath.login,
-    );
+    return AppRoutePath.splash;
   }
 
   @override

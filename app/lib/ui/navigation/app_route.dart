@@ -10,6 +10,7 @@ import '../flow/main/main_screen.dart';
 import '../flow/media_selection/media_selection_screen.dart';
 import '../flow/media_transfer/media_transfer_screen.dart';
 import '../flow/onboard/onboard_screen.dart';
+import '../flow/splash/splash_screen.dart';
 import 'package:data/models/media/media.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +20,7 @@ import '../flow/media_preview/media_preview_screen.dart';
 part 'app_route.g.dart';
 
 class AppRoutePath {
+  static const splash = '/splash';
   static const onBoard = '/on-board';
   static const home = '/';
   static const cleanUp = '/clean-up';
@@ -34,6 +36,15 @@ class AppRoutePath {
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+@TypedGoRoute<SplashRoute>(path: AppRoutePath.splash)
+class SplashRoute extends GoRouteData {
+  const SplashRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SplashScreen();
+}
 
 @TypedGoRoute<OnBoardRoute>(path: AppRoutePath.onBoard)
 class OnBoardRoute extends GoRouteData {

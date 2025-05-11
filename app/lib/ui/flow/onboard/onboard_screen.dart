@@ -2,7 +2,6 @@ import '../../../components/app_page.dart';
 import '../../../domain/extensions/context_extensions.dart';
 import '../../../gen/assets.gen.dart';
 import '../../navigation/app_route.dart';
-import 'package:data/storage/app_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
