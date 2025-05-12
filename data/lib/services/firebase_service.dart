@@ -238,6 +238,9 @@ class FirebaseService extends CloudProviderService {
     void Function(int sent, int total)? onProgress,
   }) async {
     try {
+      // Start time tracking
+      final startTime = DateTime.now();
+
       final now = DateTime.now();
       final file = File(path);
       final fileName = path.split('/').last;
@@ -247,6 +250,10 @@ class FirebaseService extends CloudProviderService {
       final folderPath =
           folderId.isNotEmpty ? folderId : 'users/$_userId/media';
       final storagePath = '$folderPath/$mediaId/$fileName';
+
+      _logger.d(
+        'Preparing upload: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
 
       // Upload to Firebase Storage
       final uploadTask = _storage.ref(storagePath).putFile(file);
@@ -267,8 +274,18 @@ class FirebaseService extends CloudProviderService {
         });
       }
 
+      _logger.d(
+        'Starting upload: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
       final snapshot = await uploadTask;
+      _logger.d(
+        'Upload completed: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
+
       final downloadUrl = await snapshot.ref.getDownloadURL();
+      _logger.d(
+        'Got download URL: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
 
       // Determine media type
       final type = AppMediaType.getType(mimeType: mimeType, location: path);
@@ -288,8 +305,14 @@ class FirebaseService extends CloudProviderService {
         final videoInfo = FlutterVideoInfo();
 
         try {
+          _logger.d(
+            'Starting video processing: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
           // Extract video info
           final info = await videoInfo.getVideoInfo(path);
+          _logger.d(
+            'Video info extracted: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
 
           if (info != null) {
             // Extract duration
@@ -305,19 +328,31 @@ class FirebaseService extends CloudProviderService {
           }
 
           // Generate thumbnail from video
+          _logger.d(
+            'Generating video thumbnail: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
           final uint8list = await VideoThumbnail.thumbnailData(
             video: path,
             imageFormat: ImageFormat.PNG,
             maxWidth: info?.width ?? 720,
           );
+          _logger.d(
+            'Thumbnail generated: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
 
           if (uint8list != null) {
             // Upload thumbnail to Firebase Storage
+            _logger.d(
+              'Uploading thumbnail: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+            );
             final thumbnailStoragePath = '$folderPath/$mediaId/thumbnail.jpg';
             final thumbnailUploadTask =
                 _storage.ref(thumbnailStoragePath).putData(uint8list);
             final thumbnailSnapshot = await thumbnailUploadTask;
             thumbnailUrl = await thumbnailSnapshot.ref.getDownloadURL();
+            _logger.d(
+              'Thumbnail uploaded: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+            );
           }
 
           orientation = info?.orientation == 0 || info?.orientation == 180
@@ -332,8 +367,17 @@ class FirebaseService extends CloudProviderService {
       } else if (type.isImage) {
         // Extract image metadata using exif
         try {
+          _logger.d(
+            'Reading image bytes: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
           final bytes = await File(path).readAsBytes();
+          _logger.d(
+            'Reading EXIF data: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
           final tags = await readExifFromBytes(bytes);
+          _logger.d(
+            'EXIF data extracted: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+          );
 
           // Extract image dimensions
           try {
@@ -377,7 +421,9 @@ class FirebaseService extends CloudProviderService {
               }
             }
 
-            _logger.d('Image dimensions: ${displayWidth}x$displayHeight');
+            _logger.d(
+              'Image dimensions extracted: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+            );
           } catch (e) {
             _logger.e('Error extracting image dimensions: $e');
           }
@@ -410,7 +456,9 @@ class FirebaseService extends CloudProviderService {
                 if (latRef.contains('S')) latitude = -latitude;
                 if (lngRef.contains('W')) longitude = -longitude;
 
-                _logger.d('Extracted GPS coordinates: $latitude, $longitude');
+                _logger.d(
+                  'GPS coordinates extracted: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+                );
               }
             }
           } catch (e) {
@@ -454,7 +502,13 @@ class FirebaseService extends CloudProviderService {
       mediaData['modifiedTime'] = Timestamp.fromDate(now);
 
       // Add to Firestore
+      _logger.d(
+        'Saving to Firestore: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
       await _mediaCollection.doc(mediaId).set(mediaData);
+      _logger.d(
+        'Upload complete, total time: ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
 
       return appMedia;
     } catch (e) {
