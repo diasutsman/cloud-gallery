@@ -172,7 +172,7 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
                 leading: Icon(Icons.calendar_today),
                 title: Text('Calendar Disguise'),
                 subtitle: Text(
-                  'Follow the sequence: Today button → Year → Month → Day (matching PIN digits)',
+                  'Use date button, (today button as zero)',
                 ),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -186,8 +186,9 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
               const ListTile(
                 leading: Icon(Icons.watch_later),
                 title: Text('Clock Disguise'),
-                subtitle:
-                    Text('Tap hour positions on the clock that match your PIN'),
+                subtitle: Text(
+                  'Tap hour positions on the clock that match your PIN (hour 12 = 0, so if you want to set PIN 1000, tap 1, 12, 12, 12)',
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
             ],

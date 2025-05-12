@@ -29,12 +29,12 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
     Logger().d('CalendarDisguise build _authSequence: $_authSequence');
     // Check the PIN sequence using the PIN code digits
     final List<String> pinDigits = widget.correctPin.split('');
-    final requiredSequence = [
-      'today', // First tap today button
-      'year:${_getTargetYear(pinDigits)}', // Tap year (using first two PIN digits)
-      'month:${_getTargetMonth(pinDigits)}', // Tap month (using third PIN digit)
-      'day:${_getTargetDay(pinDigits)}', // Tap day (using fourth PIN digit)
-    ];
+    final List<String> requiredSequence = []; // First tap today button
+
+    // Add each digit of the PIN to the required sequence
+    for (int i = 0; i < pinDigits.length; i++) {
+      requiredSequence.add('date:${pinDigits[i]}');
+    }
 
     // Check if auth sequence is correct
     if (_authSequence.length >= requiredSequence.length) {
@@ -70,7 +70,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
               setState(() {
                 _focusedMonth = DateTime.now();
                 _selectedDay = DateTime.now();
-                _authSequence.add('today');
+                _authSequence.add('date:0');
               });
             },
           ),
@@ -99,29 +99,6 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
               ? _buildMonthSelector()
               : _buildCalendar(),
     );
-  }
-
-  String _getTargetYear(List<String> pinDigits) {
-    // Use first two digits of PIN to determine year (e.g., pin 1234 -> year 2012)
-    return "20${pinDigits[0]}${pinDigits[1]}";
-  }
-
-  String _getTargetMonth(List<String> pinDigits) {
-    // Use third digit of PIN to determine month (limit to 1-12)
-    final int monthDigit = int.parse(pinDigits[2]);
-    // Make sure month is valid (1-12)
-    return (monthDigit == 0
-            ? 10
-            : (monthDigit > 9 ? monthDigit % 9 : monthDigit))
-        .toString();
-  }
-
-  String _getTargetDay(List<String> pinDigits) {
-    // Use fourth digit of PIN to determine day (limit to valid day of month)
-    final int dayDigit = int.parse(pinDigits[3]);
-    // Make sure day is valid (1-28 for simplicity)
-    return (dayDigit == 0 ? 10 : (dayDigit > 28 ? dayDigit % 28 : dayDigit))
-        .toString();
   }
 
   Widget _buildCalendar() {
@@ -165,7 +142,6 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                       _focusedMonth.month - 1,
                       1,
                     );
-                    _authSequence.add('month:${_focusedMonth.month}');
                   });
                 },
               ),
@@ -193,7 +169,6 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                       _focusedMonth.month + 1,
                       1,
                     );
-                    _authSequence.add('month:${_focusedMonth.month}');
                   });
                 },
               ),
@@ -244,7 +219,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                 onTap: () {
                   setState(() {
                     _selectedDay = date;
-                    _authSequence.add('day:$day');
+                    _authSequence.add('date:$day');
                   });
                 },
                 child: Container(
@@ -321,7 +296,6 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
             setState(() {
               _focusedMonth = DateTime(year, _focusedMonth.month, 1);
               _showingYears = false;
-              _authSequence.add('year:$year');
             });
           },
           child: Container(
@@ -379,7 +353,6 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
             setState(() {
               _focusedMonth = DateTime(_focusedMonth.year, month, 1);
               _showingMonths = false;
-              _authSequence.add('month:$month');
             });
           },
           child: Container(
