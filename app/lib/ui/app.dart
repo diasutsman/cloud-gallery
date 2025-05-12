@@ -94,6 +94,7 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: _router,
+        debugShowCheckedModeBanner: false,
         theme: AppThemeBuilder.cupertinoThemeFromColorScheme(
           colorScheme: colorScheme,
         ),
@@ -104,6 +105,7 @@ class _CloudGalleryAppState extends ConsumerState<CloudGalleryApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: _router,
+      debugShowCheckedModeBanner: false,
       theme: AppThemeBuilder.materialThemeFromColorScheme(
         colorScheme: colorScheme,
       ),
