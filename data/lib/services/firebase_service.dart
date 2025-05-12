@@ -595,53 +595,59 @@ class FirebaseService extends CloudProviderService {
 
     // Create a copy of mediaIds to preserve original order
     final resultIds = List<String>.from(mediaIds);
-
-    // Check which media IDs already exist
-    final chunks = _chunkList(mediaIds, 10);
-    final existingMediaIds = <String>{};
     final now = DateTime.now();
 
-    for (final chunk in chunks) {
-      final querySnapshot = await _mediaCollection
-          .where(FieldPath.documentId, whereIn: chunk)
-          .get();
+    // Create a list of futures to check if each media exists and process it
+    final futures = mediaIds.asMap().entries.map((entry) async {
+      final index = entry.key;
+      final id = entry.value;
 
-      existingMediaIds.addAll(querySnapshot.docs.map((doc) => doc.id));
-    }
+      // Check if media exists in Firestore
+      final docSnapshot = await _mediaCollection.doc(id).get();
 
-    // Process media IDs that don't exist yet
-    for (int i = 0; i < resultIds.length; i++) {
-      final id = resultIds[i];
-      if (existingMediaIds.contains(id)) continue;
+      // If media doesn't exist in Firestore, process it
+      if (!docSnapshot.exists) {
+        // Get local media data
+        final localMedia = await _localMediaService.getMedia(id: id);
 
-      // Get local media data
-      final localMedia = await _localMediaService.getMedia(id: id);
+        if (localMedia != null) {
+          try {
+            // Use the existing uploadMedia method to handle the upload
+            final uploadedMedia = await uploadMedia(
+              folderId: 'users/$_userId/media',
+              path: localMedia.path,
+              mimeType: localMedia.mimeType,
+              localRefId:
+                  id, // Use the media ID as the localRefId for reference
+            );
 
-      if (localMedia != null) {
-        try {
-          // Use the existing uploadMedia method to handle the upload
-          final uploadedMedia = await uploadMedia(
-            folderId: 'users/$_userId/media',
-            path: localMedia.path,
-            mimeType: localMedia.mimeType,
-            localRefId: id, // Use the media ID as the localRefId for reference
-          );
-
-          // Replace the original ID with the uploaded media ID in the result
-          resultIds[i] = uploadedMedia.id;
-        } catch (e, st) {
-          _logger.e('Error uploading media to Firebase Storage: $e\n$st');
-          rethrow;
+            // Return a tuple of index and the new ID to update the resultIds later
+            return MapEntry(index, uploadedMedia.id);
+          } catch (e, st) {
+            _logger.e('Error uploading media to Firebase Storage: $e\n$st');
+            rethrow;
+          }
+        } else {
+          // If no local media is found, create basic placeholder
+          await _mediaCollection.doc(id).set({
+            'id': id,
+            'userId': _userId,
+            'createdTime': now,
+            'updatedTime': now,
+          });
         }
-      } else {
-        // If no local media is found, create basic placeholder
-        await _mediaCollection.doc(id).set({
-          'id': id,
-          'userId': _userId,
-          'createdTime': now,
-          'updatedTime': now,
-        });
       }
+
+      // If media exists or was created as a placeholder, return the original ID
+      return MapEntry(index, id);
+    }).toList();
+
+    // Wait for all operations to complete in parallel
+    final results = await Future.wait(futures);
+
+    // Update resultIds with any new IDs from uploaded media
+    for (final result in results) {
+      resultIds[result.key] = result.value;
     }
 
     _logger.d('Ensuring media exists resultIds: $resultIds');
