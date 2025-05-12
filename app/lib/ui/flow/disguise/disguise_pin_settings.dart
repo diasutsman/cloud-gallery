@@ -266,8 +266,8 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
       onTap: () {
         setState(() {
           _currentDisguiseType = type;
+          _saveDisguiseType();
         });
-        _saveDisguiseType();
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
@@ -314,7 +314,7 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
 
   Future<void> _saveDisguiseType() async {
     try {
-      await AppSwitcher.switchAppLauncher(_currentDisguiseType);
+      AppSwitcher.switchAppLauncher(_currentDisguiseType);
       if (mounted) {
         // Update the provider
         ref.read(disguiseTypeProvider.notifier).state = _currentDisguiseType;

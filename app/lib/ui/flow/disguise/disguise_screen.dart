@@ -1,8 +1,10 @@
+import 'package:data/log/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/utils/app_switcher.dart';
 import '../../../domain/utils/disguise_preferences.dart';
 import '../../navigation/app_route.dart';
+import '../accounts/accounts_screen_view_model.dart';
 import 'layouts/calculator_disguise.dart';
 import 'layouts/calendar_disguise.dart';
 import 'layouts/notes_disguise.dart';
@@ -13,8 +15,14 @@ class DisguiseScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final disguiseType = ref.watch(disguiseTypeProvider);
+    final disguiseType = ref.watch(
+      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
+    );
     final pinCode = ref.watch(disguisePinProvider);
+
+    ref.read(loggerProvider).d(
+          'DisguiseScreen build disguiseType: $disguiseType, pinCode: $pinCode',
+        );
 
     // Show loading indicator while PIN is loading
     if (pinCode is AsyncLoading) {
