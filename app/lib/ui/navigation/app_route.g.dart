@@ -17,6 +17,8 @@ List<RouteBase> get $appRoutes => [
       $mediaSelectionRoute,
       $loginRoute,
       $signupRoute,
+      $disguiseRoute,
+      $disguisePinSettingsRoute,
     ];
 
 RouteBase get $splashRoute => GoRouteData.$route(
@@ -310,6 +312,51 @@ extension $SignupRouteExtension on SignupRoute {
 
   String get location => GoRouteData.$location(
         '/signup',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $disguiseRoute => GoRouteData.$route(
+      path: '/disguise',
+      factory: $DisguiseRouteExtension._fromState,
+    );
+
+extension $DisguiseRouteExtension on DisguiseRoute {
+  static DisguiseRoute _fromState(GoRouterState state) => const DisguiseRoute();
+
+  String get location => GoRouteData.$location(
+        '/disguise',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $disguisePinSettingsRoute => GoRouteData.$route(
+      path: '/disguise-pin-settings',
+      factory: $DisguisePinSettingsRouteExtension._fromState,
+    );
+
+extension $DisguisePinSettingsRouteExtension on DisguisePinSettingsRoute {
+  static DisguisePinSettingsRoute _fromState(GoRouterState state) =>
+      const DisguisePinSettingsRoute();
+
+  String get location => GoRouteData.$location(
+        '/disguise-pin-settings',
       );
 
   void go(BuildContext context) => context.go(location);

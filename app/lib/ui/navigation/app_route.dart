@@ -6,6 +6,8 @@ import '../flow/albums/media_list/album_media_list_screen.dart';
 import '../flow/auth/login_screen.dart';
 import '../flow/auth/signup_screen.dart';
 import '../flow/clean_up/clean_up_screen.dart';
+import '../flow/disguise/disguise_screen.dart';
+import '../flow/disguise/disguise_pin_settings.dart';
 import '../flow/main/main_screen.dart';
 import '../flow/media_selection/media_selection_screen.dart';
 import '../flow/media_transfer/media_transfer_screen.dart';
@@ -33,6 +35,8 @@ class AppRoutePath {
   static const mediaSelection = '/select';
   static const login = '/login';
   static const signup = '/signup';
+  static const disguise = '/disguise';
+  static const disguisePinSettings = '/disguise-pin-settings';
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -227,4 +231,22 @@ class SignupRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const SignupScreen();
+}
+
+@TypedGoRoute<DisguiseRoute>(path: AppRoutePath.disguise)
+class DisguiseRoute extends GoRouteData {
+  const DisguiseRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DisguiseScreen();
+}
+
+@TypedGoRoute<DisguisePinSettingsRoute>(path: AppRoutePath.disguisePinSettings)
+class DisguisePinSettingsRoute extends GoRouteData {
+  const DisguisePinSettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DisguisePinSettings();
 }

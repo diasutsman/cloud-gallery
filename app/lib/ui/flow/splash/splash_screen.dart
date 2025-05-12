@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:style/extensions/context_extensions.dart';
 
+import '../../../domain/utils/app_switcher.dart';
+import '../../../domain/utils/disguise_preferences.dart';
 import '../../../gen/assets.gen.dart';
 import '../../navigation/app_route.dart';
 import '../../../domain/services/auth_service.dart';
@@ -23,15 +25,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     });
   }
 
-  void _checkAuthAndNavigate() {
+  void _checkAuthAndNavigate() async {
     // Check authentication state
     final authState = ref.read(authStateProvider);
     
     authState.when(
-      data: (user) {
-        // If user is logged in, navigate to home, otherwise to login
+      data: (user) async {
+        // If user is logged in, check disguise status
         if (user != null) {
-          HomeRoute().go(context);
+          // Get the current disguise type
+          final disguiseType = await AppSwitcher.getCurrentDisguiseType();
+          // Update the provider
+          ref.read(disguiseTypeProvider.notifier).state = disguiseType;
+          
+          if (disguiseType != AppDisguiseType.none) {
+            // If disguise is active, show the disguise screen first
+            DisguiseRoute().go(context);
+          } else {
+            // Otherwise, go directly to home
+            HomeRoute().go(context);
+          }
         } else {
           LoginRoute().go(context);
         }
