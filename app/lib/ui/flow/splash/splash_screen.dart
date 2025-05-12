@@ -16,19 +16,34 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
+  bool _isDisguiseActive = false;
+  AppDisguiseType _activeDisguiseType = AppDisguiseType.none;
+
   @override
   void initState() {
     super.initState();
+    // Check if disguise is active immediately to display correct splash screen
+    _checkDisguiseStatus();
     // Check authentication after a short delay to allow the splash screen to be shown
     Future.delayed(const Duration(seconds: 2), () {
       _checkAuthAndNavigate();
     });
   }
 
+  Future<void> _checkDisguiseStatus() async {
+    final disguiseType = await AppSwitcher.getCurrentDisguiseType();
+    if (mounted) {
+      setState(() {
+        _activeDisguiseType = disguiseType;
+        _isDisguiseActive = disguiseType != AppDisguiseType.none;
+      });
+    }
+  }
+
   void _checkAuthAndNavigate() async {
     // Check authentication state
     final authState = ref.read(authStateProvider);
-    
+
     authState.when(
       data: (user) async {
         // If user is logged in, check disguise status
@@ -37,7 +52,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           final disguiseType = await AppSwitcher.getCurrentDisguiseType();
           // Update the provider
           ref.read(disguiseTypeProvider.notifier).state = disguiseType;
-          
+
           if (disguiseType != AppDisguiseType.none) {
             // If disguise is active, show the disguise screen first
             DisguiseRoute().go(context);
@@ -64,6 +79,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // When disguise is active, show the corresponding disguise app icon
+    if (_isDisguiseActive) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Image.asset(
+            _getDisguiseIconPath(),
+            width: 120,
+          ),
+        ),
+      );
+    }
+
+    // Regular splash screen with logo for normal mode
     return Scaffold(
       body: Stack(
         children: [
@@ -89,5 +118,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         ],
       ),
     );
+  }
+
+  // Get the icon path based on the active disguise type
+  String _getDisguiseIconPath() {
+    switch (_activeDisguiseType) {
+      case AppDisguiseType.calculator:
+        return 'assets/images/ic_calculator.png';
+      case AppDisguiseType.calendar:
+        return 'assets/images/ic_calendar.png';
+      case AppDisguiseType.notes:
+        return 'assets/images/ic_notes.png';
+      case AppDisguiseType.clock:
+        return 'assets/images/ic_clock.png';
+      case AppDisguiseType.weather:
+        return 'assets/images/ic_weather.png';
+      case AppDisguiseType.none:
+        return Assets.images.appIcon.path;
+    }
   }
 }

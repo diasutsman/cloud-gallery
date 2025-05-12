@@ -242,7 +242,7 @@ class SettingsActionList extends ConsumerWidget {
           color: context.colorScheme.outline,
           size: 22,
         ),
-        onPressed: () => DisguisePinSettingsRoute().go(context),
+        onPressed: () => DisguisePinSettingsRoute().push(context),
       );
 
   /// Gets a user-friendly subtitle for the app disguise option

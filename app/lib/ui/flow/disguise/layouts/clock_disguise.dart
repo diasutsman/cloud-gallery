@@ -97,6 +97,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
         title: const Text('Clock'),
         backgroundColor: Colors.black87,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Container(
         color: Colors.black87,
@@ -151,34 +152,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
 
   Widget _buildWorldClockTab() {
     return Center(
-      child: GestureDetector(
-        onTapDown: (details) {
-          // Get center of the container
-          final RenderBox box = context.findRenderObject() as RenderBox;
-          final center = box.size.center(Offset.zero);
-
-          // Calculate position relative to center
-          final position = details.localPosition - center;
-
-          // Convert to angle (0 is at 3 o'clock, going clockwise)
-          final angle = atan2(position.dy, position.dx);
-
-          // Convert to hours (0-11)
-          // We add 2*pi to handle negative angles, then add pi/2 to rotate so 0 is at 12 o'clock
-          // Then we take modulo 2*pi and convert to hours
-          final hours = ((angle + 2 * pi + pi / 2) % (2 * pi)) / (pi / 6);
-
-          // Round to nearest hour
-          final hourPosition = ((hours.round() == 0 ? 12 : hours.round()) % 12);
-
-          Logger().d('hourPosition: $hourPosition');
-
-          // Add to tapped positions
-          setState(() {
-            _tappedPositions.add('position_$hourPosition');
-            _checkPattern();
-          });
-        },
+      child: Container(
         child: Container(
           width: 300,
           height: 300,
@@ -186,23 +160,54 @@ class _ClockDisguiseState extends State<ClockDisguise>
             color: Colors.black,
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white30, width: 4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.8),
+                blurRadius: 15,
+                spreadRadius: 5,
+              ),
+            ],
           ),
           child: Stack(
             children: [
-              // Clock face
+              // Clock face with button-like hour indicators
               ...List.generate(12, (index) {
                 final angle =
                     (index * pi / 6) - pi / 2; // -pi/2 to start at 12 o'clock
                 final hourNumber = index == 0 ? 12 : index;
+                final position = 'position_$hourNumber';
+                final isPressed = _tappedPositions.isNotEmpty &&
+                    _tappedPositions.last == position;
+
                 return Positioned(
-                  left: 150 + 120 * cos(angle),
-                  top: 150 + 120 * sin(angle),
-                  child: Text(
-                    '$hourNumber',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  left: 150 + 110 * cos(angle) - 18, // Center the button
+                  top: 150 + 110 * sin(angle) - 18, // Center the button
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _tappedPositions.add(position);
+                        _checkPattern();
+                      });
+                    },
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isPressed
+                            ? Colors.orangeAccent.withOpacity(0.5)
+                            : Colors.transparent,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$hourNumber',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 );
@@ -267,7 +272,17 @@ class _ClockDisguiseState extends State<ClockDisguise>
         child: Container(
           width: width,
           height: length,
-          color: color,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(width / 2),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.5),
+                blurRadius: 3,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
         ),
       ),
     );
