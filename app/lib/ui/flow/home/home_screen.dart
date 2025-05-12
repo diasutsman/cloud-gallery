@@ -124,6 +124,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .scaffoldBackgroundColor, // Use scaffold background color
       displacement: 40,
       child: ListView.builder(
+        physics: AlwaysScrollableScrollPhysics(),
         controller: _scrollController,
         itemCount: state.medias.length + 2,
         itemBuilder: (context, index) {
