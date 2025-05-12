@@ -49,17 +49,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         // If user is logged in, check disguise status
         if (user != null) {
           // Get the current disguise type
-          final disguiseType = await AppSwitcher.getCurrentDisguiseType();
+          // final disguiseType = await AppSwitcher.getCurrentDisguiseType();
           // Update the provider
-          ref.read(disguiseTypeProvider.notifier).state = disguiseType;
+          // ref.read(disguiseTypeProvider.notifier).state = disguiseType;
 
-          if (disguiseType != AppDisguiseType.none) {
-            // If disguise is active, show the disguise screen first
-            DisguiseRoute().go(context);
-          } else {
-            // Otherwise, go directly to home
-            HomeRoute().go(context);
-          }
+          // if (disguiseType != AppDisguiseType.none) {
+          // If disguise is active, show the disguise screen first
+          DisguiseRoute().go(context);
+          // } else {
+          //   // Otherwise, go directly to home
+          //   HomeRoute().go(context);
+          // }
         } else {
           LoginRoute().go(context);
         }
