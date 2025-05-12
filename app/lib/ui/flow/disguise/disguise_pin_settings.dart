@@ -138,22 +138,22 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
               ),
               const SizedBox(height: 16),
               _buildDisguiseSelector(),
-              const SizedBox(height: 24),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _saveDisguiseType,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(200, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Apply Disguise',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
+              // const SizedBox(height: 24),
+              // Center(
+              //   child: ElevatedButton(
+              //     onPressed: _saveDisguiseType,
+              //     style: ElevatedButton.styleFrom(
+              //       minimumSize: const Size(200, 50),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(8),
+              //       ),
+              //     ),
+              //     child: const Text(
+              //       'Apply Disguise',
+              //       style: TextStyle(fontSize: 16),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
@@ -267,6 +267,7 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
         setState(() {
           _currentDisguiseType = type;
         });
+        _saveDisguiseType();
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
