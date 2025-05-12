@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class CalendarDisguise extends StatefulWidget {
   final String correctPin;
   final VoidCallback onAuthSuccess;
 
   const CalendarDisguise({
-    Key? key,
+    super.key,
     required this.correctPin,
     required this.onAuthSuccess,
-  }) : super(key: key);
+  });
 
   @override
   State<CalendarDisguise> createState() => _CalendarDisguiseState();
@@ -17,23 +18,24 @@ class CalendarDisguise extends StatefulWidget {
 class _CalendarDisguiseState extends State<CalendarDisguise> {
   DateTime _focusedMonth = DateTime.now();
   DateTime _selectedDay = DateTime.now();
-  
+
   // Track the sequence of taps for authentication
   List<String> _authSequence = [];
   bool _showingYears = false;
   bool _showingMonths = false;
-  
+
   @override
   Widget build(BuildContext context) {
+    Logger().d('CalendarDisguise build _authSequence: $_authSequence');
     // Check the PIN sequence using the PIN code digits
-    List<String> pinDigits = widget.correctPin.split('');
+    final List<String> pinDigits = widget.correctPin.split('');
     final requiredSequence = [
       'today', // First tap today button
       'year:${_getTargetYear(pinDigits)}', // Tap year (using first two PIN digits)
       'month:${_getTargetMonth(pinDigits)}', // Tap month (using third PIN digit)
       'day:${_getTargetDay(pinDigits)}', // Tap day (using fourth PIN digit)
     ];
-    
+
     // Check if auth sequence is correct
     if (_authSequence.length >= requiredSequence.length) {
       bool isCorrect = true;
@@ -43,7 +45,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
           break;
         }
       }
-      
+
       if (isCorrect) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           widget.onAuthSuccess();
@@ -91,9 +93,9 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
           ),
         ],
       ),
-      body: _showingYears 
-          ? _buildYearSelector() 
-          : _showingMonths 
+      body: _showingYears
+          ? _buildYearSelector()
+          : _showingMonths
               ? _buildMonthSelector()
               : _buildCalendar(),
     );
@@ -103,33 +105,49 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
     // Use first two digits of PIN to determine year (e.g., pin 1234 -> year 2012)
     return "20${pinDigits[0]}${pinDigits[1]}";
   }
-  
+
   String _getTargetMonth(List<String> pinDigits) {
     // Use third digit of PIN to determine month (limit to 1-12)
-    int monthDigit = int.parse(pinDigits[2]);
+    final int monthDigit = int.parse(pinDigits[2]);
     // Make sure month is valid (1-12)
-    return (monthDigit == 0 ? 10 : (monthDigit > 9 ? monthDigit % 9 : monthDigit)).toString();
+    return (monthDigit == 0
+            ? 10
+            : (monthDigit > 9 ? monthDigit % 9 : monthDigit))
+        .toString();
   }
-  
+
   String _getTargetDay(List<String> pinDigits) {
     // Use fourth digit of PIN to determine day (limit to valid day of month)
-    int dayDigit = int.parse(pinDigits[3]);
+    final int dayDigit = int.parse(pinDigits[3]);
     // Make sure day is valid (1-28 for simplicity)
-    return (dayDigit == 0 ? 10 : (dayDigit > 28 ? dayDigit % 28 : dayDigit)).toString();
+    return (dayDigit == 0 ? 10 : (dayDigit > 28 ? dayDigit % 28 : dayDigit))
+        .toString();
   }
 
   Widget _buildCalendar() {
     // Get days in the current month
-    final daysInMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
+    final daysInMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
+    final firstDayOfMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month, 1);
     final firstWeekdayOfMonth = firstDayOfMonth.weekday;
-    
+
     // Month name and year
     final monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-    
+
     return Column(
       children: [
         // Month and year header
@@ -160,7 +178,10 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                 },
                 child: Text(
                   '${monthNames[_focusedMonth.month - 1]} ${_focusedMonth.year}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               IconButton(
@@ -179,7 +200,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
             ],
           ),
         ),
-        
+
         // Weekday header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -195,7 +216,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
             ],
           ),
         ),
-        
+
         // Calendar grid
         Expanded(
           child: GridView.builder(
@@ -209,15 +230,16 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
               // Adjust for weekday offset (Monday=1, but we need 0-based index)
               final adjustedFirstWeekday = firstWeekdayOfMonth - 1;
               final day = index - adjustedFirstWeekday + 1;
-              
+
               if (day < 1 || day > daysInMonth) {
                 return const SizedBox.shrink();
               }
-              
-              final date = DateTime(_focusedMonth.year, _focusedMonth.month, day);
+
+              final date =
+                  DateTime(_focusedMonth.year, _focusedMonth.month, day);
               final isToday = _isToday(date);
               final isSelected = _isSameDay(_selectedDay, date);
-              
+
               return GestureDetector(
                 onTap: () {
                   setState(() {
@@ -239,14 +261,13 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                     child: Text(
                       day.toString(),
                       style: TextStyle(
-                        color: isSelected 
-                            ? Colors.white 
+                        color: isSelected
+                            ? Colors.white
                             : isToday
                                 ? Colors.blue.shade900
                                 : null,
-                        fontWeight: isSelected || isToday
-                            ? FontWeight.bold
-                            : null,
+                        fontWeight:
+                            isSelected || isToday ? FontWeight.bold : null,
                       ),
                     ),
                   ),
@@ -255,7 +276,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
             },
           ),
         ),
-        
+
         // Events section
         Expanded(
           child: ListView(
@@ -279,8 +300,11 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
 
   Widget _buildYearSelector() {
     final currentYear = DateTime.now().year;
-    List<int> years = List.generate(12, (index) => currentYear - 6 + index);
-    
+    // Generate years from 1900 to 2099 to cover all possible 2-digit combinations
+    final int baseYear =
+        (currentYear ~/ 100) * 100; // Get the century (e.g., 2000 from 2023)
+    final List<int> years = List.generate(100, (index) => baseYear + index);
+
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -302,7 +326,9 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: year == _focusedMonth.year ? Colors.blue.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+              color: year == _focusedMonth.year
+                  ? Colors.blue.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
@@ -310,7 +336,9 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
               year.toString(),
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: year == _focusedMonth.year ? FontWeight.bold : FontWeight.normal,
+                fontWeight: year == _focusedMonth.year
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
           ),
@@ -318,13 +346,23 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
       },
     );
   }
-  
+
   Widget _buildMonthSelector() {
     final monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-    
+
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -346,7 +384,9 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: month == _focusedMonth.month ? Colors.blue.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+              color: month == _focusedMonth.month
+                  ? Colors.blue.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
@@ -354,7 +394,9 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
               monthNames[index],
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: month == _focusedMonth.month ? FontWeight.bold : FontWeight.normal,
+                fontWeight: month == _focusedMonth.month
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
           ),
@@ -362,16 +404,18 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
       },
     );
   }
-  
+
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
-  
+
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
