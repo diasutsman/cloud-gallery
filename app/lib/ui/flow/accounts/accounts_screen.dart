@@ -11,8 +11,9 @@ import 'package:data/storage/app_preferences.dart';
 import '../../../components/app_page.dart';
 import '../../../components/snack_bar.dart';
 import '../../../domain/extensions/context_extensions.dart';
-import '../../../domain/utils/app_switcher.dart';
+import '../../../domain/services/auth_service.dart';
 import '../../../gen/assets.gen.dart';
+import '../../navigation/app_route.dart';
 import 'accounts_screen_view_model.dart';
 import 'components/account_tab.dart';
 import 'components/profile_section.dart';
@@ -37,119 +38,6 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
   @override
   void dispose() {
     super.dispose();
-  }
-
-  /// Builds widget for app disguise options
-  Widget _buildAppDisguiseOption(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final appDisguiseType = ref.watch(
-          accountsStateNotifierProvider
-              .select((value) => value.appDisguiseType),
-        );
-
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListTile(
-            leading: _getDisguiseIcon(appDisguiseType),
-            title: const Text('App Disguise'),
-            subtitle: Text('Currently: ${_getDisguiseName(appDisguiseType)}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showDisguiseOptionsDialog(context),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Returns the appropriate icon for the current disguise type
-  Widget _getDisguiseIcon(AppDisguiseType disguiseType) {
-    switch (disguiseType) {
-      case AppDisguiseType.none:
-        return const Icon(Icons.visibility_off);
-      case AppDisguiseType.calculator:
-        return const Icon(Icons.calculate);
-      case AppDisguiseType.calendar:
-        return const Icon(Icons.calendar_today);
-      case AppDisguiseType.notes:
-        return const Icon(Icons.note);
-      case AppDisguiseType.weather:
-        return const Icon(Icons.wb_sunny);
-      case AppDisguiseType.clock:
-        return const Icon(Icons.access_time);
-    }
-  }
-
-  /// Returns a user-friendly name for the disguise type
-  String _getDisguiseName(AppDisguiseType disguiseType) {
-    switch (disguiseType) {
-      case AppDisguiseType.none:
-        return 'Default';
-      case AppDisguiseType.calculator:
-        return 'Calculator';
-      case AppDisguiseType.calendar:
-        return 'Calendar';
-      case AppDisguiseType.notes:
-        return 'Notes';
-      case AppDisguiseType.weather:
-        return 'Weather';
-      case AppDisguiseType.clock:
-        return 'Clock';
-    }
-  }
-
-  /// Shows a dialog for the user to choose app disguise options
-  void _showDisguiseOptionsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Choose App Disguise'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                _buildDisguiseOption(context, AppDisguiseType.none),
-                _buildDisguiseOption(context, AppDisguiseType.calculator),
-                _buildDisguiseOption(context, AppDisguiseType.calendar),
-                _buildDisguiseOption(context, AppDisguiseType.notes),
-                _buildDisguiseOption(context, AppDisguiseType.weather),
-                _buildDisguiseOption(context, AppDisguiseType.clock),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Builds a single disguise option for the dialog
-  Widget _buildDisguiseOption(
-      BuildContext context, AppDisguiseType disguiseType) {
-    final currentDisguiseType = ref.watch(
-      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
-    );
-
-    return ListTile(
-      leading: _getDisguiseIcon(disguiseType),
-      title: Text(_getDisguiseName(disguiseType)),
-      trailing: currentDisguiseType == disguiseType
-          ? const Icon(Icons.check, color: Colors.green)
-          : null,
-      onTap: () {
-        ref
-            .read(accountsStateNotifierProvider.notifier)
-            .setAppDisguiseType(disguiseType);
-        Navigator.of(context).pop();
-      },
-    );
   }
 
   void _errorObserver() {
@@ -185,6 +73,87 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
     }
   }
 
+  /// Firebase account tab displaying the current Firebase user and sign out option
+  Widget _firebaseAccount({required BuildContext context}) {
+    return Consumer(
+      builder: (context, ref, child) {
+        // Get user from AuthService
+        final authService = ref.watch(authServiceProvider);
+        final currentUser = authService.currentUser;
+
+        String name = 'My Account';
+        String email = 'Firebase Authentication';
+        String? photoUrl;
+
+        if (currentUser != null) {
+          name = currentUser.displayName ?? '';
+          if (name.isEmpty && currentUser.email != null) {
+            name = currentUser.email!.split('@').first;
+          }
+          email = currentUser.email ?? 'Firebase Authentication';
+          photoUrl = currentUser.photoURL;
+        }
+
+        return AccountsTab(
+          name: name,
+          serviceDescription: email,
+          profileImage: photoUrl,
+          actions: [
+            ActionListItem(
+              leading: SvgPicture.asset(
+                Assets.images.icLogout,
+                height: 22,
+                width: 22,
+                colorFilter: ColorFilter.mode(
+                  context.colorScheme.textPrimary,
+                  BlendMode.srcATop,
+                ),
+              ),
+              title: context.l10n.sign_out_title,
+              onPressed: () => _showSignOutConfirmDialog(context, ref),
+            ),
+          ],
+          backgroundColor: Colors.deepOrange.shade400,
+        );
+      },
+    );
+  }
+
+  /// Shows a confirmation dialog for signing out of Firebase
+  void _showSignOutConfirmDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.sign_out_title),
+        content: const Text("Are you sure you want to sign out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Use AuthService directly for sign out
+              await ref.read(authServiceProvider).signOut();
+              Navigator.of(context).pop();
+              if (context.mounted) {
+                showSnackBar(
+                  context: context,
+                  text: "Successfully signed out",
+                );
+
+                // Navigate to login screen
+                LoginRoute().go(context);
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text("Sign Out"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     _errorObserver();
@@ -196,8 +165,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
           padding: context.systemPadding +
               const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
-            // Firebase Email/Password Auth Profile Section
-            const ProfileSection(),
+            // Firebase Auth Account Section
+            _firebaseAccount(context: context),
             const SizedBox(height: 16),
 
             // Cloud Storage Account Sections
@@ -205,9 +174,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
             //   _googleAccount(context: context),
             // const SizedBox(height: 8),
             // _dropboxAccount(context: context),
-            // const SizedBox(height: 8),
-            _buildAppDisguiseOption(context),
-            const SizedBox(height: 16),
+            // const SizedBox(height: 16),
+
+            // Settings
             const SettingsActionList(),
             const SizedBox(height: 16),
             _buildVersion(context: context),
@@ -309,91 +278,143 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
   }
 
   Widget _dropboxAccount({required BuildContext context}) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final dropboxAccount =
-            ref.watch(AppPreferences.dropboxCurrentUserAccount);
-        if (dropboxAccount != null) {
-          return AccountsTab(
-            name: dropboxAccount.name.display_name,
-            serviceDescription:
-                "${context.l10n.common_dropbox} - ${dropboxAccount.email}",
-            profileImage: dropboxAccount.profile_photo_url,
-            actions: [
-              ActionListItem(
-                leading: Icon(
-                  CupertinoIcons.arrow_2_circlepath,
-                  color: context.colorScheme.textPrimary,
-                  size: 22,
-                ),
-                title: context.l10n.auto_back_up_title,
-                trailing: Consumer(
-                  builder: (context, ref, child) {
-                    final dropboxAutoBackUp =
-                        ref.watch(AppPreferences.dropboxAutoBackUp);
-                    return AppSwitch(
-                      value: dropboxAutoBackUp,
-                      onChanged: notifier.toggleAutoBackupInDropbox,
-                    );
-                  },
-                ),
-              ),
-              ActionListItem(
-                leading: SvgPicture.asset(
-                  Assets.images.icLogout,
+    return AccountsTab(
+      name: 'Test',
+      serviceDescription: "${context.l10n.common_dropbox} - test",
+      profileImage: 'test',
+      actions: [
+        ActionListItem(
+          leading: Icon(
+            CupertinoIcons.arrow_2_circlepath,
+            color: context.colorScheme.textPrimary,
+            size: 22,
+          ),
+          title: context.l10n.auto_back_up_title,
+          trailing: Consumer(
+            builder: (context, ref, child) {
+              // final dropboxAutoBackUp =
+              //     ref.watch(AppPreferences.dropboxAutoBackUp);
+              return AppSwitch(
+                value: false,
+                onChanged: (value) {},
+              );
+            },
+          ),
+        ),
+        ActionListItem(
+          leading: SvgPicture.asset(
+            Assets.images.icLogout,
+            height: 22,
+            width: 22,
+            colorFilter: ColorFilter.mode(
+              context.colorScheme.textPrimary,
+              BlendMode.srcATop,
+            ),
+          ),
+          title: context.l10n.sign_out_title,
+          onPressed: () async {
+            await notifier.signOutWithDropbox();
+            if (context.mounted) {
+              showSnackBar(
+                context: context,
+                text: context.l10n.successfully_sign_out_from_dropbox,
+                icon: SvgPicture.asset(
+                  Assets.images.icDropbox,
                   height: 22,
                   width: 22,
-                  colorFilter: ColorFilter.mode(
-                    context.colorScheme.textPrimary,
-                    BlendMode.srcATop,
-                  ),
                 ),
-                title: context.l10n.sign_out_title,
-                onPressed: () async {
-                  await notifier.signOutWithDropbox();
-                  if (context.mounted) {
-                    showSnackBar(
-                      context: context,
-                      text: context.l10n.successfully_sign_out_from_dropbox,
-                      icon: SvgPicture.asset(
-                        Assets.images.icDropbox,
-                        height: 22,
-                        width: 22,
-                      ),
-                    );
-                  }
-                },
-              ),
-            ],
-            backgroundColor: AppColors.dropBoxColor,
-          );
-        }
-        return ActionList(
-          buttons: [
-            ActionListItem(
-              leading: SvgPicture.asset(
-                Assets.images.icDropbox,
-                height: 22,
-                width: 22,
-              ),
-              trailing: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  CupertinoIcons.forward,
-                  color: context.colorScheme.containerHigh,
-                  size: 18,
-                ),
-              ),
-              subtitle: context.l10n.sign_in_with_dropbox_message,
-              title: context.l10n.sign_in_with_dropbox_title,
-              onPressed: () {
-                notifier.signInWithDropbox();
-              },
-            ),
-          ],
-        );
-      },
+              );
+            }
+          },
+        ),
+      ],
+      backgroundColor: AppColors.dropBoxColor,
     );
+    // return Consumer(
+    //   builder: (context, ref, child) {
+    //     final dropboxAccount =
+    //         ref.watch(AppPreferences.dropboxCurrentUserAccount);
+    //     // if (dropboxAccount != null) {
+    //     return AccountsTab(
+    //       name: dropboxAccount?.name.display_name ?? '',
+    //       serviceDescription:
+    //           "${context.l10n.common_dropbox} - ${dropboxAccount?.email}",
+    //       profileImage: dropboxAccount?.profile_photo_url ?? '',
+    //       actions: [
+    //         ActionListItem(
+    //           leading: Icon(
+    //             CupertinoIcons.arrow_2_circlepath,
+    //             color: context.colorScheme.textPrimary,
+    //             size: 22,
+    //           ),
+    //           title: context.l10n.auto_back_up_title,
+    //           trailing: Consumer(
+    //             builder: (context, ref, child) {
+    //               final dropboxAutoBackUp =
+    //                   ref.watch(AppPreferences.dropboxAutoBackUp);
+    //               return AppSwitch(
+    //                 value: dropboxAutoBackUp,
+    //                 onChanged: notifier.toggleAutoBackupInDropbox,
+    //               );
+    //             },
+    //           ),
+    //         ),
+    //         ActionListItem(
+    //           leading: SvgPicture.asset(
+    //             Assets.images.icLogout,
+    //             height: 22,
+    //             width: 22,
+    //             colorFilter: ColorFilter.mode(
+    //               context.colorScheme.textPrimary,
+    //               BlendMode.srcATop,
+    //             ),
+    //           ),
+    //           title: context.l10n.sign_out_title,
+    //           onPressed: () async {
+    //             await notifier.signOutWithDropbox();
+    //             if (context.mounted) {
+    //               showSnackBar(
+    //                 context: context,
+    //                 text: context.l10n.successfully_sign_out_from_dropbox,
+    //                 icon: SvgPicture.asset(
+    //                   Assets.images.icDropbox,
+    //                   height: 22,
+    //                   width: 22,
+    //                 ),
+    //               );
+    //             }
+    //           },
+    //         ),
+    //       ],
+    //       backgroundColor: AppColors.dropBoxColor,
+    //     );
+    //     // }
+    //     // return ActionList(
+    //     //   buttons: [
+    //     //     ActionListItem(
+    //     //       leading: SvgPicture.asset(
+    //     //         Assets.images.icDropbox,
+    //     //         height: 22,
+    //     //         width: 22,
+    //     //       ),
+    //     //       trailing: Padding(
+    //     //         padding: const EdgeInsets.all(8),
+    //     //         child: Icon(
+    //     //           CupertinoIcons.forward,
+    //     //           color: context.colorScheme.containerHigh,
+    //     //           size: 18,
+    //     //         ),
+    //     //       ),
+    //     //       subtitle: context.l10n.sign_in_with_dropbox_message,
+    //     //       title: context.l10n.sign_in_with_dropbox_title,
+    //     //       onPressed: () {
+    //     //         notifier.signInWithDropbox();
+    //     //       },
+    //     //     ),
+    //     //   ],
+    //     // );
+    //   },
+    // );
   }
 
   Widget _buildVersion({required BuildContext context}) {

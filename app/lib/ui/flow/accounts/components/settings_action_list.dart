@@ -11,6 +11,7 @@ import 'package:style/buttons/buttons_list.dart';
 import 'package:style/buttons/segmented_button.dart';
 import 'package:style/buttons/switch.dart';
 import 'package:style/extensions/context_extensions.dart';
+import '../../../../domain/utils/app_switcher.dart';
 import '../../../../gen/assets.gen.dart';
 import '../../../navigation/app_route.dart';
 import '../accounts_screen_view_model.dart';
@@ -24,9 +25,10 @@ class SettingsActionList extends ConsumerWidget {
       buttons: [
         // _notificationAction(context),
         _themeAction(context, ref),
+        _appDisguiseAction(context, ref),
+        // _clearCacheAction(context, ref),
         // _rateUsAction(context, ref),
         // _cleanUpMedia(context),
-        // _clearCacheAction(context, ref),
         // _termAndConditionAction(context, ref),
         // _privacyPolicyAction(context, ref),
       ],
@@ -222,6 +224,126 @@ class SettingsActionList extends ConsumerWidget {
           );
         },
       );
+
+  /// App disguise option - allows users to change app icon and name
+  Widget _appDisguiseAction(BuildContext context, WidgetRef ref) =>
+      ActionListItem(
+        leading: Icon(
+          Icons.app_settings_alt,
+          color: context.colorScheme.textPrimary,
+          size: 22,
+        ),
+        title: "App Disguise",
+        subtitle: _getDisguiseSubtitle(ref),
+        trailing: Icon(
+          CupertinoIcons.right_chevron,
+          color: context.colorScheme.outline,
+          size: 22,
+        ),
+        onPressed: () => _showDisguiseOptionsDialog(context, ref),
+      );
+
+  /// Gets a user-friendly subtitle for the app disguise option
+  String _getDisguiseSubtitle(WidgetRef ref) {
+    final appDisguiseType = ref.watch(
+      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
+    );
+
+    return 'Currently: ${_getDisguiseName(appDisguiseType)}';
+  }
+
+  /// Returns a user-friendly name for the disguise type
+  String _getDisguiseName(AppDisguiseType disguiseType) {
+    switch (disguiseType) {
+      case AppDisguiseType.none:
+        return 'Default';
+      case AppDisguiseType.calculator:
+        return 'Calculator';
+      case AppDisguiseType.calendar:
+        return 'Calendar';
+      case AppDisguiseType.notes:
+        return 'Notes';
+      case AppDisguiseType.weather:
+        return 'Weather';
+      case AppDisguiseType.clock:
+        return 'Clock';
+    }
+  }
+
+  /// Shows a dialog for the user to choose app disguise options
+  void _showDisguiseOptionsDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Choose App Disguise'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                _buildDisguiseOption(context, ref, AppDisguiseType.none),
+                _buildDisguiseOption(context, ref, AppDisguiseType.calculator),
+                _buildDisguiseOption(context, ref, AppDisguiseType.calendar),
+                _buildDisguiseOption(context, ref, AppDisguiseType.notes),
+                _buildDisguiseOption(context, ref, AppDisguiseType.weather),
+                _buildDisguiseOption(context, ref, AppDisguiseType.clock),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Builds a single disguise option for the dialog
+  Widget _buildDisguiseOption(
+    BuildContext context,
+    WidgetRef ref,
+    AppDisguiseType disguiseType,
+  ) {
+    final currentDisguiseType = ref.watch(
+      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
+    );
+
+    return ListTile(
+      leading: _getDisguiseIcon(disguiseType),
+      title: Text(_getDisguiseName(disguiseType)),
+      trailing: currentDisguiseType == disguiseType
+          ? const Icon(Icons.check, color: Colors.green)
+          : null,
+      onTap: () {
+        ref
+            .read(accountsStateNotifierProvider.notifier)
+            .setAppDisguiseType(disguiseType);
+        Navigator.of(context).pop();
+      },
+    );
+  }
+
+  /// Returns the appropriate icon for the current disguise type
+  Widget _getDisguiseIcon(AppDisguiseType disguiseType) {
+    switch (disguiseType) {
+      case AppDisguiseType.none:
+        return const Icon(Icons.visibility_off);
+      case AppDisguiseType.calculator:
+        return const Icon(Icons.calculate);
+      case AppDisguiseType.calendar:
+        return const Icon(Icons.calendar_today);
+      case AppDisguiseType.notes:
+        return const Icon(Icons.note);
+      case AppDisguiseType.weather:
+        return const Icon(Icons.wb_sunny);
+      case AppDisguiseType.clock:
+        return const Icon(Icons.access_time);
+    }
+  }
 
   ({String background, String text}) _getWebPageColors(
     BuildContext context,

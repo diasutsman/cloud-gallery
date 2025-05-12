@@ -98,43 +98,43 @@ class ProfileSection extends ConsumerWidget {
           ],
         ),
         const Divider(height: 32),
-        _buildProfileOption(
-          context,
-          Icons.account_circle,
-          'Edit Profile',
-          () {
-            // Navigate to edit profile screen
-            Fluttertoast.showToast(
-              msg: 'Edit profile functionality coming soon!',
-              toastLength: Toast.LENGTH_SHORT,
-            );
-          },
-        ),
-        _buildProfileOption(
-          context,
-          Icons.logout,
-          'Sign Out',
-          () async {
-            try {
-              await ref.read(authServiceProvider).signOut();
-              if (context.mounted) {
-                Fluttertoast.showToast(
-                  msg: 'Successfully signed out',
-                  toastLength: Toast.LENGTH_SHORT,
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                Fluttertoast.showToast(
-                  msg: 'Error signing out: ${e.toString()}',
-                  toastLength: Toast.LENGTH_LONG,
-                  backgroundColor: Colors.red,
-                  textColor: Colors.white,
-                );
-              }
-            }
-          },
-        ),
+        // _buildProfileOption(
+        //   context,
+        //   Icons.account_circle,
+        //   'Edit Profile',
+        //   () {
+        //     // Navigate to edit profile screen
+        //     Fluttertoast.showToast(
+        //       msg: 'Edit profile functionality coming soon!',
+        //       toastLength: Toast.LENGTH_SHORT,
+        //     );
+        //   },
+        // ),
+        // _buildProfileOption(
+        //   context,
+        //   Icons.logout,
+        //   'Sign Out',
+        //   () async {
+        //     try {
+        //       await ref.read(authServiceProvider).signOut();
+        //       if (context.mounted) {
+        //         Fluttertoast.showToast(
+        //           msg: 'Successfully signed out',
+        //           toastLength: Toast.LENGTH_SHORT,
+        //         );
+        //       }
+        //     } catch (e) {
+        //       if (context.mounted) {
+        //         Fluttertoast.showToast(
+        //           msg: 'Error signing out: ${e.toString()}',
+        //           toastLength: Toast.LENGTH_LONG,
+        //           backgroundColor: Colors.red,
+        //           textColor: Colors.white,
+        //         );
+        //       }
+        //     }
+        //   },
+        // ),
       ],
     );
   }
