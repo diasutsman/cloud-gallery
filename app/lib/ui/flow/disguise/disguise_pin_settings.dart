@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:style/extensions/context_extensions.dart';
 import '../../../domain/utils/app_switcher.dart';
 import '../../../domain/utils/disguise_preferences.dart';
 
@@ -147,8 +148,10 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Apply Disguise',
-                      style: TextStyle(fontSize: 16)),
+                  child: const Text(
+                    'Apply Disguise',
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -169,7 +172,8 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
                 leading: Icon(Icons.calendar_today),
                 title: Text('Calendar Disguise'),
                 subtitle: Text(
-                    'Follow the sequence: Today button → Year → Month → Day (matching PIN digits)'),
+                  'Follow the sequence: Today button → Year → Month → Day (matching PIN digits)',
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
               const ListTile(
@@ -225,14 +229,26 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
           runSpacing: 8.0,
           children: [
             _buildDisguiseOption(
-                AppDisguiseType.none, 'No Disguise', Icons.phone_android),
+              AppDisguiseType.none,
+              'No Disguise',
+              Icons.phone_android,
+            ),
             _buildDisguiseOption(
-                AppDisguiseType.calculator, 'Calculator', Icons.calculate),
+              AppDisguiseType.calculator,
+              'Calculator',
+              Icons.calculate,
+            ),
             _buildDisguiseOption(
-                AppDisguiseType.calendar, 'Calendar', Icons.calendar_today),
+              AppDisguiseType.calendar,
+              'Calendar',
+              Icons.calendar_today,
+            ),
             _buildDisguiseOption(AppDisguiseType.notes, 'Notes', Icons.note),
             _buildDisguiseOption(
-                AppDisguiseType.clock, 'Clock', Icons.access_time),
+              AppDisguiseType.clock,
+              'Clock',
+              Icons.access_time,
+            ),
           ],
         ),
       ],
@@ -240,7 +256,10 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
   }
 
   Widget _buildDisguiseOption(
-      AppDisguiseType type, String label, IconData icon) {
+    AppDisguiseType type,
+    String label,
+    IconData icon,
+  ) {
     final isSelected = _currentDisguiseType == type;
 
     return InkWell(
@@ -254,9 +273,12 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
         width: 100,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+          color: isSelected
+              ? context.colorScheme.primary.withOpacity(0.1)
+              : Colors.transparent,
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.shade300,
+            color:
+                isSelected ? context.colorScheme.primary : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -267,14 +289,18 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
             Icon(
               icon,
               size: 32,
-              color: isSelected ? Colors.blue : Colors.grey,
+              color: isSelected
+                  ? context.colorScheme.primary
+                  : context.colorScheme.textSecondary,
             ),
             const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? Colors.blue : Colors.black,
+                color: isSelected
+                    ? context.colorScheme.primary
+                    : context.colorScheme.textSecondary,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 12,
               ),
@@ -294,8 +320,10 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'App disguise changed to ${_getDisguiseName(_currentDisguiseType)}')),
+            content: Text(
+              'App disguise changed to ${_getDisguiseName(_currentDisguiseType)}',
+            ),
+          ),
         );
       }
     } catch (e) {

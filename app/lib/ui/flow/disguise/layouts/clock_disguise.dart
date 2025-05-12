@@ -76,8 +76,6 @@ class _ClockDisguiseState extends State<ClockDisguise>
     bool matches = true;
     for (int i = 0; i < widget.correctPin.length; i++) {
       final String expectedPosition = 'position_${widget.correctPin[i]}';
-      Logger().d('expectedPosition: $expectedPosition');
-      Logger().d('relevantTaps[i]: ${relevantTaps[i]}');
       if (relevantTaps[i] != expectedPosition) {
         matches = false;
         break;
@@ -175,7 +173,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
                 final angle =
                     (index * pi / 6) - pi / 2; // -pi/2 to start at 12 o'clock
                 final hourNumber = index == 0 ? 12 : index;
-                final position = 'position_$hourNumber';
+                final position = 'position_$index';
                 final isPressed = _tappedPositions.isNotEmpty &&
                     _tappedPositions.last == position;
 

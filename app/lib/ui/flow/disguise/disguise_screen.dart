@@ -39,7 +39,7 @@ class DisguiseScreen extends ConsumerWidget {
 
     // Successful PIN validation callback
     void onAuthSuccess() {
-      HomeRoute().pushReplacement(context);
+      HomeRoute().go(context);
     }
 
     // Show the appropriate disguise based on selected type
