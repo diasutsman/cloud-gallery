@@ -22,13 +22,13 @@ class SettingsActionList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ActionList(
       buttons: [
-        _notificationAction(context),
+        // _notificationAction(context),
         _themeAction(context, ref),
-        _rateUsAction(context, ref),
-        _cleanUpMedia(context),
-        _clearCacheAction(context, ref),
-        _termAndConditionAction(context, ref),
-        _privacyPolicyAction(context, ref),
+        // _rateUsAction(context, ref),
+        // _cleanUpMedia(context),
+        // _clearCacheAction(context, ref),
+        // _termAndConditionAction(context, ref),
+        // _privacyPolicyAction(context, ref),
       ],
     );
   }
