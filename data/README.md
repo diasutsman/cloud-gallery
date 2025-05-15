@@ -1,5 +1,5 @@
 # Data
 
-It contains the data layer of Cloud Gallery.
+It contains the data layer of Lock & Key.
 
 

@@ -4,7 +4,7 @@
 
 ### Introduction
 
-Canopas Software LLP ("Canopas," "we," "us," or "our") respects your privacy. This Privacy Policy describes how we collect, use, and protect information related to your use of our mobile application, Cloud Gallery.
+Canopas Software LLP ("Canopas," "we," "us," or "our") respects your privacy. This Privacy Policy describes how we collect, use, and protect information related to your use of our mobile application, Lock & Key.
 
 ### Information We Collect
 
@@ -15,12 +15,12 @@ We collect two categories of information through the App:
 
 ### Storage Provider Information
 
-If you link your account with a third-party storage provider (e.g., Google Drive), Cloud Gallery acts as a medium to enable you to:
+If you link your account with a third-party storage provider (e.g., Google Drive), Lock & Key acts as a medium to enable you to:
 
 * View, upload, download, and delete photos and videos stored in your Google Drive, only at your instruction.
 * Perform automatic backups to your selected storage provider, if enabled by you.
 
-**Important Information:** Cloud Gallery does not store, process, or retain any of your media files. Your media remains under your control, stored exclusively on your chosen storage provider's account (e.g, Google Drive). We access your provider's data solely to facilitate the services you request within the App and do not retain any of this data on our servers.
+**Important Information:** Lock & Key does not store, process, or retain any of your media files. Your media remains under your control, stored exclusively on your chosen storage provider's account (e.g, Google Drive). We access your provider's data solely to facilitate the services you request within the App and do not retain any of this data on our servers.
 
 ### How We Use Your Information
 
@@ -68,7 +68,7 @@ We take reasonable measures to safeguard your information from unauthorized acce
 
 ### Children's Privacy
 
-Cloud Gallery is not directed at children under 13, and we do not knowingly collect information from children under this age.
+Lock & Key is not directed at children under 13, and we do not knowingly collect information from children under this age.
 
 ### Changes to this Policy
 

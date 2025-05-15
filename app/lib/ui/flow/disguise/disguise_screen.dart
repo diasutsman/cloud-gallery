@@ -89,7 +89,7 @@ class DisguiseScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cloud Gallery'),
+        title: const Text('Lock & Key'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

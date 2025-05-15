@@ -1,5 +1,5 @@
 name: data
-description: "Cloud gallery backend service module"
+description: "Lock & Key backend service module"
 version: 0.0.1
 
 environment:

@@ -1,3 +1,3 @@
 # Style
 
-It contains common styles used in the Cloud Gallery.
+It contains common styles used in the Lock & Key.

@@ -1,7 +1,7 @@
 <p align="center"> <a href="https://canopas.com/contact"><img src="./cta/cta-banner.png"></a></p>
 <br/>
 
-# Cloud Gallery: All Your Memories in One Spot
+# Lock & Key: All Your Memories in One Spot
 
 Enjoy all your media in one spot! Easily view and manage photos, videos from Google Drive, Dropbox,
 and your device, all in a simple, user-friendly interface.
@@ -12,7 +12,7 @@ and your device, all in a simple, user-friendly interface.
 
 ## Overview
 
-Cloud Gallery is an open-source Flutter project that makes managing your photos and videos
+Lock & Key is an open-source Flutter project that makes managing your photos and videos
 effortless. Keep all your media in one place,
 whether it’s stored locally or in the cloud with Google Drive or Dropbox. Automatically back up
 your local media to the cloud, and seamlessly upload, download, or organize your files anywhere.
@@ -86,33 +86,33 @@ It’s the simplest way to keep your memories safe and accessible.
 - **Stay Organized**: Organize and categorize your photos and videos in Google Drive or Dropbox,
   making it easy to find and manage your media files.
 
-- **Secure User Data**: With an intuitive and user-friendly interface, Cloud Gallery makes it easy
+- **Secure User Data**: With an intuitive and user-friendly interface, Lock & Key makes it easy
   to manage your media files, ensuring a hassle-free experience.
 
-- **Cross-Platform Compatibility**: Whether you're using an Android or iOS device, Cloud Gallery
+- **Cross-Platform Compatibility**: Whether you're using an Android or iOS device, Lock & Key
   offers seamless compatibility across platforms.
 
-- **User-Friendly Interface**: With an intuitive and user-friendly interface, Cloud Gallery makes it
+- **User-Friendly Interface**: With an intuitive and user-friendly interface, Lock & Key makes it
   easy to manage your media files, ensuring a hassle-free experience.
 
-> **Note**: Cloud Gallery is currently in active development 🚧, with plans to incorporate additional
+> **Note**: Lock & Key is currently in active development 🚧, with plans to incorporate additional
 > features shortly. Stay tuned for updates!
 
 <br/>
 
 ### What’s Coming Next? 🚀
-Excited for the future of Cloud Gallery? Explore our [Feature Queue](https://github.com/canopas/cloud-gallery/wiki/Feature-Queue) to see the upcoming features and enhancements we’re working on. We’re grateful for your support and can’t wait to share what’s next!
+Excited for the future of Lock & Key? Explore our [Feature Queue](https://github.com/canopas/cloud-gallery/wiki/Feature-Queue) to see the upcoming features and enhancements we’re working on. We’re grateful for your support and can’t wait to share what’s next!
 
 <br/>
 
 ## Requirements & Project Setup  🛠️  
-For detailed instructions on setting up the Cloud Gallery app in your local development environment, please refer to the [Project Setup](https://github.com/canopas/cloud-gallery/wiki/Project-Setup).
+For detailed instructions on setting up the Lock & Key app in your local development environment, please refer to the [Project Setup](https://github.com/canopas/cloud-gallery/wiki/Project-Setup).
 
 <br/>
 
 ## Technologies Stack 🖥️
 
-Cloud Gallery utilizes the latest Flutter app development technologies and adheres to industry best
+Lock & Key utilizes the latest Flutter app development technologies and adheres to industry best
 practices. Below is the current technologies stack used in the development process:
 
 - [Dart](https://dart.dev/)
@@ -159,7 +159,7 @@ The Canopas team enthusiastically welcomes contributions and project participati
 
 ## Created & Maintained By
 
-Cloud Gallery is owned and maintained by the [Canopas team](https://canopas.com/).
+Lock & Key is owned and maintained by the [Canopas team](https://canopas.com/).
 
 You can follow them on X at [@canopassoftware](https://x.com/canopassoftware) for
 project updates and releases. If you are interested in building apps or designing products, please
@@ -171,7 +171,7 @@ let us know. We'd love to hear from you!
 
 ## License 📄
 
-**Cloud Gallery** is licensed under the Apache License, Version 2.0.
+**Lock & Key** is licensed under the Apache License, Version 2.0.
 
 ```
 Copyright 2024 Canopas Software LLP

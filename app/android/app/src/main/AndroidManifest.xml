@@ -12,8 +12,8 @@
 
     <application
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:label="Cloud Gallery">
+        android:icon="@mipmap/launcher_icon"
+        android:label="Lock &amp; Key">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -62,8 +62,8 @@
             android:name=".MainActivity"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="Cloud Gallery"
+            android:icon="@mipmap/launcher_icon"
+            android:label="Lock & Key"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -76,7 +76,7 @@
             android:name=".MainActivityAliasCalculator"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_calculator"
+            android:icon="@mipmap/launcher_icon"
             android:label="Calculator"
             android:targetActivity=".MainActivity">
             <intent-filter>
@@ -90,7 +90,7 @@
             android:name=".MainActivityAliasCalendar"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_calendar"
+            android:icon="@mipmap/launcher_icon"
             android:label="Calendar"
             android:targetActivity=".MainActivity">
             <intent-filter>
@@ -104,7 +104,7 @@
             android:name=".MainActivityAliasNotes"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_notes"
+            android:icon="@mipmap/launcher_icon"
             android:label="Notes"
             android:targetActivity=".MainActivity">
             <intent-filter>
@@ -118,7 +118,7 @@
             android:name=".MainActivityAliasWeather"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_weather"
+            android:icon="@mipmap/launcher_icon"
             android:label="Weather"
             android:targetActivity=".MainActivity">
             <intent-filter>
@@ -132,7 +132,7 @@
             android:name=".MainActivityAliasClock"
             android:enabled="false"
             android:exported="true"
-            android:icon="@mipmap/ic_clock"
+            android:icon="@mipmap/launcher_icon"
             android:label="Clock"
             android:targetActivity=".MainActivity">
             <intent-filter>

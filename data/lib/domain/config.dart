@@ -1,10 +1,10 @@
 class ProviderConstants {
   static const String albumFileName = 'Album.json';
-  static const String backupFolderName = 'Cloud Gallery Backup';
-  static const String backupFolderPath = '/Cloud Gallery Backup';
+  static const String backupFolderName = 'Lock & Key Backup';
+  static const String backupFolderPath = '/Lock & Key Backup';
   static const String localRefIdKey = 'local_ref_id';
   static const String dropboxAppTemplateName =
-      'Cloud Gallery Local File Information';
+      'Lock & Key Local File Information';
 }
 
 class LocalDatabaseConstants {

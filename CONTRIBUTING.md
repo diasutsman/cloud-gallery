@@ -28,4 +28,4 @@ Labels on issues are managed by contributors, you don't have to worry about them
 * **non-library**: The issue is not in the core library code, but rather in documentation, samples, build process, releases
 
 ## License
-By contributing to Cloud Gallery, you agree that your contributions will be licensed under its Apache License, Version 2.0. See the [LICENSE](https://github.com/canopas/cloud-gallery/blob/main/LICENSE) file for details.
+By contributing to Lock & Key, you agree that your contributions will be licensed under its Apache License, Version 2.0. See the [LICENSE](https://github.com/canopas/cloud-gallery/blob/main/LICENSE) file for details.

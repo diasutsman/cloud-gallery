@@ -2,7 +2,7 @@
 
 **Effective Date: April 24, 2024**
 
-These Terms & Conditions govern your use of the Cloud Gallery mobile app, developed by Canopas Software LLP. By downloading and using the App, you agree to be bound by these Terms. If you disagree with any part of these Terms, you may not use the App.
+These Terms & Conditions govern your use of the Lock & Key mobile app, developed by Canopas Software LLP. By downloading and using the App, you agree to be bound by these Terms. If you disagree with any part of these Terms, you may not use the App.
 
 ### License to Use
 
@@ -15,9 +15,9 @@ Canopas grants you a non-exclusive, revocable license to use the App in accordan
 
 ### User Content and Data
 
-Cloud Gallery does not store, process, or use any of your media content. The App solely facilitates the backup of your media directly to your chosen third-party storage provider, such as your Google Drive account. All media content remains under your control and is stored exclusively on your selected service provider's servers (e.g., your Google Drive account).
+Lock & Key does not store, process, or use any of your media content. The App solely facilitates the backup of your media directly to your chosen third-party storage provider, such as your Google Drive account. All media content remains under your control and is stored exclusively on your selected service provider's servers (e.g., your Google Drive account).
 
-By using the App, you agree that Cloud Gallery will access only the minimal necessary information, such as your name and email address, for authentication purposes and to provide the service. Canopas does not collect, store, or retain your media files, nor does it use them for any purpose beyond facilitating the service.
+By using the App, you agree that Lock & Key will access only the minimal necessary information, such as your name and email address, for authentication purposes and to provide the service. Canopas does not collect, store, or retain your media files, nor does it use them for any purpose beyond facilitating the service.
 
 You acknowledge that Canopas is not responsible for any data loss, corruption, or any issues related to your media content. You are solely responsible for the management, backup, and integrity of your media stored on your chosen third-party storage provider.
 
@@ -45,7 +45,7 @@ These Terms constitute the entire agreement between you and Canopas regarding yo
 
 These Terms and Conditions will be governed by and construed in accordance with the laws of India, without regard to its conflict of law provisions.
 
-This clarifies that Indian law applies to any disputes arising from the use of the Cloud Gallery app developed by Canopas Software LLP.
+This clarifies that Indian law applies to any disputes arising from the use of the Lock & Key app developed by Canopas Software LLP.
 
 ### Changes to the Terms
 
