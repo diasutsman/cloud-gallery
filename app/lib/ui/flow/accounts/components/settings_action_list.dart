@@ -1,3 +1,4 @@
+import 'package:data/domain/app_disguise_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:style/animations/fade_in_switcher.dart';

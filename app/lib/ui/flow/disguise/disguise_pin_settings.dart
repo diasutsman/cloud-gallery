@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:style/extensions/context_extensions.dart';
-import '../../../domain/utils/app_switcher.dart';
+import 'package:cloud_gallery/domain/utils/app_switcher.dart';
+import 'package:data/domain/app_disguise_type.dart';
 import '../../../domain/utils/disguise_preferences.dart';
 
 class DisguisePinSettings extends ConsumerStatefulWidget {

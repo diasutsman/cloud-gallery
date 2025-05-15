@@ -1,3 +1,4 @@
+import 'package:data/domain/app_disguise_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:style/extensions/context_extensions.dart';

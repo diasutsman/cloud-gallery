@@ -1,15 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-/// Enum representing different app disguise types
-enum AppDisguiseType {
-  none,
-  calculator,
-  calendar,
-  notes,
-  weather,
-  clock,
-}
+import 'package:data/domain/app_disguise_type.dart';
 
 /// Utility class for switching app launcher icons and names
 class AppSwitcher {

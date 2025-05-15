@@ -1,7 +1,8 @@
 import 'package:data/log/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../domain/utils/app_switcher.dart';
+import 'package:cloud_gallery/domain/utils/app_switcher.dart';
+import 'package:data/domain/app_disguise_type.dart';
 import '../../../domain/utils/disguise_preferences.dart';
 import '../../navigation/app_route.dart';
 import '../accounts/accounts_screen_view_model.dart';

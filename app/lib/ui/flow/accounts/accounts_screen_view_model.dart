@@ -4,16 +4,19 @@ import 'package:data/handlers/notification_handler.dart';
 import 'package:data/log/logger.dart';
 import 'package:data/models/media_process/media_process.dart';
 import 'package:data/repositories/media_process_repository.dart';
+import 'package:data/storage/provider/preferences_provider.dart';
+
+import '../../../domain/utils/app_switcher.dart';
+import 'package:data/domain/app_disguise_type.dart';
 import 'package:data/services/auth_service.dart';
 import 'package:data/services/device_service.dart';
 import 'package:data/storage/app_preferences.dart';
-import 'package:data/storage/provider/preferences_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/utils/app_switcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -63,7 +66,7 @@ class AccountsStateNotifier extends StateNotifier<AccountsState> {
       updateUser(event);
     });
   }
-  
+
   /// Loads the current app disguise type from SharedPreferences
   Future<void> _loadAppDisguiseType() async {
     try {
@@ -75,19 +78,19 @@ class AccountsStateNotifier extends StateNotifier<AccountsState> {
       _logger.e('Error loading app disguise type: $e');
     }
   }
-  
+
   /// Sets the app disguise type and updates the app icon/name
   Future<void> setAppDisguiseType(AppDisguiseType disguiseType) async {
     try {
       state = state.copyWith(error: null);
-      
+
       // Save the setting to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('app_disguise_type', disguiseType.index);
-      
+
       // Update the app icon and name using AppSwitcher
       await AppSwitcher.switchAppLauncher(disguiseType);
-      
+
       // Update the state
       state = state.copyWith(appDisguiseType: disguiseType);
     } catch (e, s) {
