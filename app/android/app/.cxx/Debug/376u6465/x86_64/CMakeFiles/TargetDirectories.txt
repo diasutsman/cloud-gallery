@@ -1,0 +1,2 @@
+/media/du/New Volume/DUPOPOS/Freelance/upwork/cloud-gallery/app/android/app/.cxx/Debug/376u6465/x86_64/CMakeFiles/edit_cache.dir
+/media/du/New Volume/DUPOPOS/Freelance/upwork/cloud-gallery/app/android/app/.cxx/Debug/376u6465/x86_64/CMakeFiles/rebuild_cache.dir
