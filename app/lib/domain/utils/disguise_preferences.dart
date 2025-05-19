@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:data/domain/app_disguise_type.dart';
 import 'package:data/log/logger.dart';
+import 'package:logger/logger.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'app_switcher.dart';
@@ -53,6 +54,7 @@ class DisguisePreferences {
   ) async {
     final hash = hashPin(pin);
     final remoteHash = await service.getPinHash();
+    Logger().i('Hash: $hash == $remoteHash');
     return hash == remoteHash;
   }
 }
@@ -109,6 +111,6 @@ Future<void> updateAppDisguiseType(
   try {
     await service.updateDisguiseType(type.toDisguiseTypeString());
   } catch (e) {
-    print('Error updating app disguise type: $e');
+    Logger().e('Error updating app disguise type: $e');
   }
 }
