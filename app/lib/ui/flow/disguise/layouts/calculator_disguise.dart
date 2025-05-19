@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CalculatorDisguise extends StatefulWidget {
   final String correctPin;
   final VoidCallback onAuthSuccess;
+  final Future<bool> Function(String) verifyPin;
 
   const CalculatorDisguise({
     Key? key,
     required this.correctPin,
     required this.onAuthSuccess,
+    required this.verifyPin,
   }) : super(key: key);
 
   @override
@@ -62,14 +64,14 @@ class _CalculatorDisguiseState extends State<CalculatorDisguise> {
     });
   }
 
-  void _calculate() {
-    // Check if the entered pin is correct
-    if (_display == widget.correctPin) {
-      // PIN is correct, navigate to the main app
+  Future<void> _calculate() async {
+    // Use verifyPin function for checking PIN securely
+    final isCorrect = await widget.verifyPin(_display);
+    if (isCorrect) {
       widget.onAuthSuccess();
     } else {
       setState(() {
-        _display = _display;  // Show the result (normal calculator behavior)
+        _display = _display;
         _startNewNumber = true;
         _hasDecimal = false;
       });

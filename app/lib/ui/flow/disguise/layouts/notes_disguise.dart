@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class NotesDisguise extends StatefulWidget {
   final String correctPin;
   final VoidCallback onAuthSuccess;
+  final Future<bool> Function(String) verifyPin;
 
   const NotesDisguise({
     super.key,
     required this.correctPin,
     required this.onAuthSuccess,
+    required this.verifyPin,
   });
 
   @override
@@ -36,10 +38,16 @@ class _NotesDisguiseState extends State<NotesDisguise> {
     super.dispose();
   }
 
-  void _checkForPin(String text) {
-    // Check if the text contains the PIN code followed by "="
-    if (text.contains('${widget.correctPin}=')) {
-      widget.onAuthSuccess();
+  Future<void> _checkForPin(String text) async {
+    // Extract possible pin before '='
+    final regex = RegExp(r'^(\d+)=');
+    final match = regex.firstMatch(text);
+    if (match != null) {
+      final enteredPin = match.group(1) ?? '';
+      final isCorrect = await widget.verifyPin(enteredPin);
+      if (isCorrect) {
+        widget.onAuthSuccess();
+      }
     }
   }
 

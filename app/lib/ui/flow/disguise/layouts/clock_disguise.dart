@@ -6,11 +6,13 @@ import 'package:logger/logger.dart';
 class ClockDisguise extends StatefulWidget {
   final String correctPin;
   final VoidCallback onAuthSuccess;
+  final Future<bool> Function(String) verifyPin;
 
   const ClockDisguise({
     super.key,
     required this.correctPin,
     required this.onAuthSuccess,
+    required this.verifyPin,
   });
 
   @override
@@ -61,31 +63,21 @@ class _ClockDisguiseState extends State<ClockDisguise>
   // Check if the sequence of taps matches the PIN
   // For clock disguise, users need to tap positions on the clock face
   // that correspond to their PIN (e.g., for PIN 1234, tap positions at 1, 2, 3, 4 o'clock)
-  void _checkPattern() {
+  Future<void> _checkPattern() async {
     Logger().d('widget.correctPin: ${widget.correctPin}');
     Logger().d('_tappedPositions: $_tappedPositions');
     if (_tappedPositions.length < widget.correctPin.length) return;
-
-    // Get last N taps where N is the length of the PIN
-    final List<String> relevantTaps = _tappedPositions
-        .sublist(_tappedPositions.length - widget.correctPin.length);
-
-    Logger().d('relevantTaps: $relevantTaps');
-
-    // Check if the sequence matches
-    bool matches = true;
-    for (int i = 0; i < widget.correctPin.length; i++) {
-      final String expectedPosition = 'position_${widget.correctPin[i]}';
-      if (relevantTaps[i] != expectedPosition) {
-        matches = false;
-        break;
-      }
-    }
-
+    final bool matches = await _checkPinSequence();
     Logger().d('matches: $matches');
     if (matches) {
       widget.onAuthSuccess();
     }
+  }
+
+  // Check PIN sequence using verifyPin
+  Future<bool> _checkPinSequence() async {
+    final enteredPin = _tappedPositions.join();
+    return await widget.verifyPin(enteredPin);
   }
 
   @override

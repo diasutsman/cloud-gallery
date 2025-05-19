@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const _androidChannel = AndroidNotificationChannel(
   'notification-channel-cloud-gallery', // id
-  'Cloud Gallery Notification', // title
+  'Lock & Key Notification', // title
   description:
       'This channel is used to notify you about the processes in the app.',
   // description

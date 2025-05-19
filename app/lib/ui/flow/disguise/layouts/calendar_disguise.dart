@@ -4,11 +4,13 @@ import 'package:logger/logger.dart';
 class CalendarDisguise extends StatefulWidget {
   final String correctPin;
   final VoidCallback onAuthSuccess;
+  final Future<bool> Function(String) verifyPin;
 
   const CalendarDisguise({
     super.key,
     required this.correctPin,
     required this.onAuthSuccess,
+    required this.verifyPin,
   });
 
   @override
@@ -38,26 +40,21 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
 
     // Check if auth sequence is correct
     if (_authSequence.length >= requiredSequence.length) {
-      bool isCorrect = true;
-      for (int i = 0; i < requiredSequence.length; i++) {
-        if (requiredSequence[i] != _authSequence[i]) {
-          isCorrect = false;
-          break;
-        }
-      }
-
-      if (isCorrect) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          widget.onAuthSuccess();
-        });
-      } else {
-        // Reset sequence if wrong
-        if (_authSequence.length > requiredSequence.length) {
-          setState(() {
-            _authSequence = [];
+      final enteredPin = pinDigits.join();
+      widget.verifyPin(enteredPin).then((isCorrect) {
+        if (isCorrect) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onAuthSuccess();
           });
+        } else {
+          // Reset sequence if wrong
+          if (_authSequence.length > requiredSequence.length) {
+            setState(() {
+              _authSequence = [];
+            });
+          }
         }
-      }
+      });
     }
 
     return Scaffold(

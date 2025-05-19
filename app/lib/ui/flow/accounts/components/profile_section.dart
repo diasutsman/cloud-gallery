@@ -79,7 +79,7 @@ class ProfileSection extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.displayName ?? 'Cloud Gallery User',
+                    user.displayName ?? 'Lock & Key User',
                     style: AppTextStyles.subtitle1.copyWith(
                       fontWeight: FontWeight.bold,
                       color: context.colorScheme.textPrimary,

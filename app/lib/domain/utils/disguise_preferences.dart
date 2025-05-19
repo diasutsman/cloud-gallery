@@ -6,7 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:data/domain/app_disguise_type.dart';
 import 'package:data/log/logger.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import 'app_switcher.dart';
+import 'package:data/services/app_settings_service.dart';
 
 /// Manages disguise-related preferences like PIN codes and app settings
 class DisguisePreferences {
@@ -25,6 +28,32 @@ class DisguisePreferences {
   static Future<bool> setPinCode(String pinCode) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.setString(_pinCodeKey, pinCode);
+  }
+
+  /// Hashes a PIN using SHA-256
+  static String hashPin(String pin) {
+    final bytes = utf8.encode(pin);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  /// Saves the hashed PIN to Firebase (via AppSettingsService)
+  static Future<void> setPinHashFirebase(
+    String pin,
+    AppSettingsService service,
+  ) async {
+    final hash = hashPin(pin);
+    await service.updatePinHash(hash);
+  }
+
+  /// Verifies the PIN by comparing its hash to the hash stored in Firebase
+  static Future<bool> verifyPinWithFirebase(
+    String pin,
+    AppSettingsService service,
+  ) async {
+    final hash = hashPin(pin);
+    final remoteHash = await service.getPinHash();
+    return hash == remoteHash;
   }
 }
 
@@ -64,14 +93,19 @@ final appSettingsStreamProvider = StreamProvider((ref) {
 final disguiseTypeProvider = StateProvider<AppDisguiseType>((ref) {
   final settings = ref.watch(appSettingsStreamProvider);
   return settings.when(
-    data: (data) => data?.disguiseType != null ? data!.disguiseType.toAppDisguiseType() : AppDisguiseType.none,
+    data: (data) => data?.disguiseType != null
+        ? data!.disguiseType.toAppDisguiseType()
+        : AppDisguiseType.none,
     loading: () => AppDisguiseType.none,
     error: (_, __) => AppDisguiseType.none,
   );
 });
 
 /// Updates app disguise type in Firebase
-Future<void> updateAppDisguiseType(AppDisguiseType type, AppSettingsService service) async {
+Future<void> updateAppDisguiseType(
+  AppDisguiseType type,
+  AppSettingsService service,
+) async {
   try {
     await service.updateDisguiseType(type.toDisguiseTypeString());
   } catch (e) {

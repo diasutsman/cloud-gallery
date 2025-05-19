@@ -131,4 +131,36 @@ class AppSettingsService {
       }
     });
   }
+
+  /// Update the hashed PIN in Firebase for the current user
+  Future<void> updatePinHash(String hash) async {
+    if (_userId == null || !_firebaseService.isAuthenticated) {
+      throw Exception('User not authenticated');
+    }
+    try {
+      await _collection.doc(_userId).set({
+        'pinHash': hash,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      throw Exception('Failed to update PIN hash: $e');
+    }
+  }
+
+  /// Retrieve the hashed PIN from Firebase for the current user
+  Future<String?> getPinHash() async {
+    if (_userId == null || !_firebaseService.isAuthenticated) {
+      throw Exception('User not authenticated');
+    }
+    try {
+      final docSnapshot = await _collection.doc(_userId).get();
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        return data['pinHash'] as String?;
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to get PIN hash: $e');
+    }
+  }
 }

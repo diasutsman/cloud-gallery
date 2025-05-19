@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:style/extensions/context_extensions.dart';
-import 'package:cloud_gallery/domain/utils/app_switcher.dart';
+import '../../../domain/utils/app_switcher.dart';
 import 'package:data/domain/app_disguise_type.dart';
 import '../../../domain/utils/disguise_preferences.dart';
 
@@ -26,8 +26,28 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
   }
 
   Future<void> _loadCurrentSettings() async {
+    // Get local PIN from SharedPreferences
     final pin = await DisguisePreferences.getPinCode();
     final disguiseType = await AppSwitcher.getCurrentDisguiseType();
+
+    // Get service for Firebase operations
+    final appSettingsService = ref.read(appSettingsServiceProvider);
+
+    // If local PIN exists, ensure it's also in Firebase
+    if (pin != DisguisePreferences.defaultPinCode) {
+      try {
+        // Check if PIN exists in Firebase
+        final pinHash = await appSettingsService.getPinHash();
+        if (pinHash == null) {
+          // If not in Firebase yet, save it there
+          await DisguisePreferences.setPinHashFirebase(pin, appSettingsService);
+        }
+      } catch (e) {
+        // Error accessing Firebase, continue with local PIN
+        print('Error checking PIN in Firebase: $e');
+      }
+    }
+
     setState(() {
       _currentPin = pin;
       _currentDisguiseType = disguiseType;
@@ -201,7 +221,12 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
 
   Future<void> _savePin() async {
     if (_formKey.currentState!.validate()) {
-      final success = await DisguisePreferences.setPinCode(_pinController.text);
+      final pin = _pinController.text;
+      final success = await DisguisePreferences.setPinCode(pin);
+
+      // Save hashed PIN to Firebase
+      final appSettingsService = ref.read(appSettingsServiceProvider);
+      await DisguisePreferences.setPinHashFirebase(pin, appSettingsService);
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -210,7 +235,7 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
 
         // Update the displayed PIN
         setState(() {
-          _currentPin = _pinController.text;
+          _currentPin = pin;
         });
 
         // Clear the text fields
