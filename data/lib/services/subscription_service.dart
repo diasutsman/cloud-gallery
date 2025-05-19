@@ -5,7 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'package:logger/logger.dart';
 
 class SubscriptionService {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -26,8 +27,6 @@ class SubscriptionService {
 
   // Initialize the service and listen for purchase updates
   Future<void> initialize() async {
-    if (kIsWeb) return; // IAP not supported on web
-
     // Set up the purchase stream
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen(
@@ -45,12 +44,14 @@ class SubscriptionService {
   }
 
   Future<List<ProductDetails>> _loadProducts() async {
-    if (kIsWeb) return [];
+    Logger().d('_monthlySubscriptionId: ${_monthlySubscriptionId}');
 
     final ProductDetailsResponse response =
         await _inAppPurchase.queryProductDetails(
       {_monthlySubscriptionId},
     );
+
+    Logger().d('response: ${response.productDetails}');
 
     if (response.error != null) {
       return [];
@@ -96,8 +97,6 @@ class SubscriptionService {
 
   // Start a subscription purchase
   Future<bool> subscribe(String userId, {String? discountCode}) async {
-    if (kIsWeb) return false;
-
     // Get products
     final products = await _loadProducts();
     if (products.isEmpty) return false;
@@ -222,8 +221,7 @@ class SubscriptionService {
     if (userId.isEmpty) return false;
 
     try {
-      final doc =
-          await firestore.collection('subscriptions').doc(userId).get();
+      final doc = await firestore.collection('subscriptions').doc(userId).get();
       if (!doc.exists) return false;
 
       final data = doc.data() as Map<String, dynamic>;
@@ -245,9 +243,22 @@ class SubscriptionService {
   }
 
   // Clean up resources
-  void dispose() {
-    _subscription?.cancel();
-    _subscriptionStatusController.close();
+  void dispose() async {
+    // End billing client connection first to prevent 'Service not registered' errors
+    try {
+      await Future.delayed(
+        Duration.zero,
+      ); // Allow pending operations to complete
+      _subscription?.cancel();
+      _subscription = null;
+    } catch (e) {
+      Logger().e('Error during subscription cancel: $e');
+    }
+
+    // Close the stream controller
+    if (!_subscriptionStatusController.isClosed) {
+      _subscriptionStatusController.close();
+    }
   }
 }
 

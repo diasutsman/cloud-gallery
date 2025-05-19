@@ -1,12 +1,12 @@
 name: cloud_gallery
 description: "Cloud File Manager that works with various cloud providers."
 
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
+  sdk: ">=3.2.3 <4.0.0"
 
 dependencies:
   flutter:
@@ -26,7 +26,7 @@ dependencies:
   # UI
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.16
-  fluttertoast: ^8.2.8
+  fluttertoast: ^8.2.12
   cached_network_image: ^3.4.1
   video_player: ^2.9.2
   visibility_detector: ^0.4.0+2
