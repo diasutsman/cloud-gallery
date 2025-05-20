@@ -156,19 +156,28 @@ class _ClockDisguiseState extends State<ClockDisguise>
   Widget _buildWorldClockTab() {
     // Get the current time directly here to ensure it's up-to-date
     final now = DateTime.now();
-    // Convert time to radians for the clock hands
-    // Calculate angles in radians for clock hands
-    // Convert time to degrees for the clock hands
-    // Hours: 30 degrees per hour (360/12), plus small adjustment for minutes
-    final double hourAngle =
-        ((now.hour % 12) * 30 + now.minute * 0.5) * (pi / 180) - pi / 2;
-    // Minutes: 6 degrees per minute (360/60)
-    final double minuteAngle = (now.minute * 6.0 - 180) * (pi / 180);
-    // Seconds: 6 degrees per second (360/60)
-    final double secondAngle = (now.second * 6.0 - 180) * (pi / 180);
+    // Using the timeToDegrees function approach adapted to Dart
+    // Calculate rotation in degrees
+
+    // Second hand: 6 degrees per second (360°/60)
+    final double secondDegrees = (now.second * 6) - 90;
+
+    // Minute hand: 6 degrees per minute plus adjustment for seconds
+    final double minuteDegrees = (now.minute * 6 + now.second * 0.1) - 90;
+
+    // Hour hand: 30 degrees per hour (360°/12) plus adjustments for minutes and seconds
+    final double hourDegrees =
+        ((now.hour % 12) * 30 + (now.minute / 60) * 30) - 90;
+
+    // Convert to radians and adjust for starting position (-90 degrees)
+    final double hourAngle = hourDegrees * (pi / 180) - pi / 2;
+    final double minuteAngle = minuteDegrees * (pi / 180) - pi / 2;
+    final double secondAngle = secondDegrees * (pi / 180) - pi / 2;
 
     Logger().d(
-      'hourAngle: $hourAngle\nminuteAngle: $minuteAngle\nsecondAngle: $secondAngle',
+      'hour: ${now.hour}, min: ${now.minute}, sec: ${now.second}\n'
+      'hourDegrees: $hourDegrees, minuteDegrees: $minuteDegrees, secondDegrees: $secondDegrees\n'
+      'hourAngle: $hourAngle, minuteAngle: $minuteAngle, secondAngle: $secondAngle',
     );
 
     return Center(
@@ -237,8 +246,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
 
               // Hour hand
               _buildClockHand(
-                // angle: hourAngle,
-                angle: 0 * (pi / 180),
+                angle: hourAngle,
                 length: 60,
                 width: 4,
                 color: Colors.white,
