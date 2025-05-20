@@ -9,14 +9,15 @@ class DisguisePinSettings extends ConsumerStatefulWidget {
   const DisguisePinSettings({super.key});
 
   @override
-  _DisguisePinSettingsState createState() => _DisguisePinSettingsState();
+  ConsumerState<DisguisePinSettings> createState() =>
+      _DisguisePinSettingsState();
 }
 
 class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
   final _formKey = GlobalKey<FormState>();
   final _pinController = TextEditingController();
   final _confirmPinController = TextEditingController();
-  String? _currentPin;
+
   AppDisguiseType _currentDisguiseType = AppDisguiseType.none;
 
   @override
@@ -27,34 +28,12 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
 
   Future<void> _loadCurrentSettings() async {
     // Get local PIN from SharedPreferences
-    final pin = await DisguisePreferences.getPinCode();
     final disguiseType = await AppSwitcher.getCurrentDisguiseType();
 
-    // Get service for Firebase operations
-    final appSettingsService = ref.read(appSettingsServiceProvider);
-
-    // If local PIN exists, ensure it's also in Firebase
-    if (pin != DisguisePreferences.defaultPinCode) {
-      try {
-        // Check if PIN exists in Firebase
-        final pinHash = await appSettingsService.getPinHash();
-        if (pinHash == null) {
-          // If not in Firebase yet, save it there
-          await DisguisePreferences.setPinHashFirebase(pin, appSettingsService);
-        }
-      } catch (e) {
-        // Error accessing Firebase, continue with local PIN
-        print('Error checking PIN in Firebase: $e');
-      }
-    }
-
     setState(() {
-      _currentPin = pin;
       _currentDisguiseType = disguiseType;
     });
   }
-
-  // Replaced with _loadCurrentSettings
 
   @override
   void dispose() {
@@ -87,19 +66,12 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 24),
-              if (_currentPin != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    'Current PIN: ${_currentPin!.replaceAll(RegExp(r'.'), '*')}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
+
               TextFormField(
                 controller: _pinController,
                 decoration: const InputDecoration(
                   labelText: 'New PIN Code',
-                  hintText: 'Enter a 4-6 digit PIN',
+                  hintText: 'Enter a 6 digit PIN',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
@@ -108,8 +80,8 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a PIN';
                   }
-                  if (value.length < 4 || value.length > 6) {
-                    return 'PIN must be 4-6 digits';
+                  if (value.length != 6) {
+                    return 'PIN must be 6 digits';
                   }
                   if (!RegExp(r'^\d+$').hasMatch(value)) {
                     return 'PIN must contain only digits';
@@ -222,22 +194,15 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
   Future<void> _savePin() async {
     if (_formKey.currentState!.validate()) {
       final pin = _pinController.text;
-      final success = await DisguisePreferences.setPinCode(pin);
 
       // Save hashed PIN to Firebase
       final appSettingsService = ref.read(appSettingsServiceProvider);
       await DisguisePreferences.setPinHashFirebase(pin, appSettingsService);
 
-      if (success && mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('PIN saved successfully')),
         );
-
-        // Update the displayed PIN
-        setState(() {
-          _currentPin = pin;
-        });
-
         // Clear the text fields
         _pinController.clear();
         _confirmPinController.clear();
@@ -302,7 +267,7 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? context.colorScheme.primary.withOpacity(0.1)
+              ? context.colorScheme.primary.withValues(alpha: 0.1)
               : Colors.transparent,
           border: Border.all(
             color:
@@ -345,6 +310,11 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
       if (mounted) {
         // Update the provider
         ref.read(disguiseTypeProvider.notifier).state = _currentDisguiseType;
+
+        updateAppDisguiseType(
+          _currentDisguiseType,
+          ref.read(appSettingsServiceProvider),
+        );
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class ClockDisguise extends StatefulWidget {
-  final String correctPin;
   final VoidCallback onAuthSuccess;
   final Future<bool> Function(String) verifyPin;
 
   const ClockDisguise({
     super.key,
-    required this.correctPin,
     required this.onAuthSuccess,
     required this.verifyPin,
   });
@@ -64,11 +62,15 @@ class _ClockDisguiseState extends State<ClockDisguise>
   // For clock disguise, users need to tap positions on the clock face
   // that correspond to their PIN (e.g., for PIN 1234, tap positions at 1, 2, 3, 4 o'clock)
   Future<void> _checkPattern() async {
-    Logger().d('widget.correctPin: ${widget.correctPin}');
-    Logger().d('_tappedPositions: $_tappedPositions');
-    if (_tappedPositions.length < widget.correctPin.length) return;
+    if (_tappedPositions.length != 6) {
+      return;
+    }
     final bool matches = await _checkPinSequence();
     Logger().d('matches: $matches');
+    _tappedPositions.clear();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(matches ? 'Correct!' : 'Incorrect!')),
+    );
     if (matches) {
       widget.onAuthSuccess();
     }
@@ -77,6 +79,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
   // Check PIN sequence using verifyPin
   Future<bool> _checkPinSequence() async {
     final enteredPin = _tappedPositions.join();
+    Logger().d('enteredPin: $enteredPin');
     return await widget.verifyPin(enteredPin);
   }
 
@@ -165,7 +168,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
                 final angle =
                     (index * pi / 6) - pi / 2; // -pi/2 to start at 12 o'clock
                 final hourNumber = index == 0 ? 12 : index;
-                final position = 'position_$index';
+                final position = '$index';
                 final isPressed = _tappedPositions.isNotEmpty &&
                     _tappedPositions.last == position;
 

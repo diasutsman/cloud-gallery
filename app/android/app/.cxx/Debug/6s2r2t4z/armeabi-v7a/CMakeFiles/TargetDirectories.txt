@@ -1,0 +1,2 @@
+/home/du/Freelance/upwork/cloud-gallery/app/android/app/.cxx/Debug/6s2r2t4z/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/du/Freelance/upwork/cloud-gallery/app/android/app/.cxx/Debug/6s2r2t4z/armeabi-v7a/CMakeFiles/rebuild_cache.dir

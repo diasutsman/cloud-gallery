@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class CalendarDisguise extends StatefulWidget {
-  final String correctPin;
   final VoidCallback onAuthSuccess;
   final Future<bool> Function(String) verifyPin;
 
   const CalendarDisguise({
     super.key,
-    required this.correctPin,
     required this.onAuthSuccess,
     required this.verifyPin,
   });
@@ -30,17 +28,17 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
   Widget build(BuildContext context) {
     Logger().d('CalendarDisguise build _authSequence: $_authSequence');
     // Check the PIN sequence using the PIN code digits
-    final List<String> pinDigits = widget.correctPin.split('');
+
     final List<String> requiredSequence = []; // First tap today button
 
     // Add each digit of the PIN to the required sequence
-    for (int i = 0; i < pinDigits.length; i++) {
-      requiredSequence.add('date:${pinDigits[i]}');
+    for (int i = 0; i < _authSequence.length; i++) {
+      requiredSequence.add('date:${_authSequence[i]}');
     }
 
     // Check if auth sequence is correct
     if (_authSequence.length >= requiredSequence.length) {
-      final enteredPin = pinDigits.join();
+      final enteredPin = _authSequence.join();
       widget.verifyPin(enteredPin).then((isCorrect) {
         if (isCorrect) {
           WidgetsBinding.instance.addPostFrameCallback((_) {

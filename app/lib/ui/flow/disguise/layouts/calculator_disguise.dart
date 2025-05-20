@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CalculatorDisguise extends StatefulWidget {
-  final String correctPin;
   final VoidCallback onAuthSuccess;
   final Future<bool> Function(String) verifyPin;
 
   const CalculatorDisguise({
-    Key? key,
-    required this.correctPin,
+    super.key,
     required this.onAuthSuccess,
     required this.verifyPin,
-  }) : super(key: key);
+  });
 
   @override
   State<CalculatorDisguise> createState() => _CalculatorDisguiseState();
@@ -45,12 +43,12 @@ class _CalculatorDisguiseState extends State<CalculatorDisguise> {
   void _addDecimal() {
     setState(() {
       if (_hasDecimal) return;
-      
+
       if (_startNewNumber) {
         _display = '0.';
         _startNewNumber = false;
       } else {
-        _display = _display + '.';
+        _display = '$_display.';
       }
       _hasDecimal = true;
     });

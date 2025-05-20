@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
 class NotesDisguise extends StatefulWidget {
-  final String correctPin;
   final VoidCallback onAuthSuccess;
   final Future<bool> Function(String) verifyPin;
 
   const NotesDisguise({
     super.key,
-    required this.correctPin,
     required this.onAuthSuccess,
     required this.verifyPin,
   });
@@ -173,8 +171,10 @@ class _NotesDisguiseState extends State<NotesDisguise> {
                       if (isEditing)
                         TextButton.icon(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          label: const Text('Delete',
-                              style: TextStyle(color: Colors.red)),
+                          label: const Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
                           onPressed: () {
                             Navigator.pop(context);
                             setState(() {

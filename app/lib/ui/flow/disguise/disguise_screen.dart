@@ -67,25 +67,21 @@ class DisguiseScreen extends ConsumerWidget {
     switch (disguiseType) {
       case AppDisguiseType.calculator:
         return CalculatorDisguise(
-          correctPin: actualPin,
           onAuthSuccess: onAuthSuccess,
           verifyPin: verifyPinWithFirebase,
         );
       case AppDisguiseType.calendar:
         return CalendarDisguise(
-          correctPin: actualPin,
           onAuthSuccess: onAuthSuccess,
           verifyPin: verifyPinWithFirebase,
         );
       case AppDisguiseType.notes:
         return NotesDisguise(
-          correctPin: actualPin,
           onAuthSuccess: onAuthSuccess,
           verifyPin: verifyPinWithFirebase,
         );
       case AppDisguiseType.clock:
         return ClockDisguise(
-          correctPin: actualPin,
           onAuthSuccess: onAuthSuccess,
           verifyPin: verifyPinWithFirebase,
         );
