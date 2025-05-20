@@ -217,7 +217,19 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Select app disguise type:'),
+        const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: 'Select app disguise type '),
+              TextSpan(
+                text: '(it will automatically restart app to apply)',
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: ':'),
+            ],
+          ),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8.0,
@@ -309,7 +321,6 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
 
   Future<void> _saveDisguiseType() async {
     try {
-      AppSwitcher.switchAppLauncher(_currentDisguiseType);
       if (mounted) {
         // Update the provider
         ref.read(disguiseTypeProvider.notifier).state = _currentDisguiseType;
@@ -327,6 +338,7 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
           ),
         );
       }
+      AppSwitcher.switchAppLauncher(_currentDisguiseType);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

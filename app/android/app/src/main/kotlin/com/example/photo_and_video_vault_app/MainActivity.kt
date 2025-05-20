@@ -50,7 +50,8 @@ class MainActivity: FlutterActivity() {
         for (component in allAliases) {
             pm.setComponentEnabledSetting(
                 component,
-                PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                // PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP
             )
         }
