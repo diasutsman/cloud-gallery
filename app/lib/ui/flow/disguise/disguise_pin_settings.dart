@@ -158,29 +158,32 @@ class _DisguisePinSettingsState extends ConsumerState<DisguisePinSettings> {
               const ListTile(
                 leading: Icon(Icons.calculate),
                 title: Text('Calculator Disguise'),
-                subtitle: Text('Enter your PIN and press = key'),
+                subtitle: Text(
+                  'Enter your PIN and press the equals (=) key to access your hidden gallery.',
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
               const ListTile(
                 leading: Icon(Icons.calendar_today),
                 title: Text('Calendar Disguise'),
                 subtitle: Text(
-                  'Use date button, (today button as zero)',
+                  'Tap on dates that match your PIN sequence. For example, if your PIN is 123456, tap dates 1, 2, 3, 4, 5, and 6. Use the Today button as 0.',
                 ),
                 contentPadding: EdgeInsets.zero,
               ),
               const ListTile(
                 leading: Icon(Icons.note),
                 title: Text('Notes Disguise'),
-                subtitle:
-                    Text('Type your PIN followed by = character in any note'),
+                subtitle: Text(
+                  'Create a new note and start it in the content section with your PIN followed by = (example: 123456=). This will unlock your gallery while keeping your media secure.',
+                ),
                 contentPadding: EdgeInsets.zero,
               ),
               const ListTile(
                 leading: Icon(Icons.watch_later),
                 title: Text('Clock Disguise'),
                 subtitle: Text(
-                  'Tap hour positions on the clock that match your PIN (hour 12 = 0, so if you want to set PIN 1000, tap 1, 12, 12, 12)',
+                  'Tap hour positions on the clock that match your 6-digit PIN. The hour 12 represents 0. For example, if your PIN is 123450, tap hours 1, 2, 3, 4, 5, and 12 in sequence to unlock your gallery.',
                 ),
                 contentPadding: EdgeInsets.zero,
               ),

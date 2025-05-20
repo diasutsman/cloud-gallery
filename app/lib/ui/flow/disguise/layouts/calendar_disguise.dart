@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 
 class CalendarDisguise extends StatefulWidget {
@@ -26,31 +27,37 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
 
   @override
   Widget build(BuildContext context) {
-    Logger().d('CalendarDisguise build _authSequence: $_authSequence');
-    // Check the PIN sequence using the PIN code digits
-
-    final List<String> requiredSequence = []; // First tap today button
-
-    // Add each digit of the PIN to the required sequence
-    for (int i = 0; i < _authSequence.length; i++) {
-      requiredSequence.add('date:${_authSequence[i]}');
-    }
-
     // Check if auth sequence is correct
-    if (_authSequence.length >= requiredSequence.length) {
+    Logger().d('Auth sequence: ${_authSequence.join()}');
+    if (_authSequence.length == 6) {
       final enteredPin = _authSequence.join();
       widget.verifyPin(enteredPin).then((isCorrect) {
         if (isCorrect) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            widget.onAuthSuccess();
-          });
+          // WidgetsBinding.instance.addPostFrameCallback((_) {
+          Fluttertoast.showToast(
+            msg: "Correct!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          widget.onAuthSuccess();
+          // });
         } else {
-          // Reset sequence if wrong
-          if (_authSequence.length > requiredSequence.length) {
-            setState(() {
-              _authSequence = [];
-            });
-          }
+          Fluttertoast.showToast(
+            msg: "Incorrect!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          setState(() {
+            _authSequence = [];
+          });
         }
       });
     }
@@ -65,7 +72,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
               setState(() {
                 _focusedMonth = DateTime.now();
                 _selectedDay = DateTime.now();
-                _authSequence.add('date:0');
+                _authSequence.add('0');
               });
             },
           ),
@@ -214,7 +221,9 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                 onTap: () {
                   setState(() {
                     _selectedDay = date;
-                    _authSequence.add('date:$day');
+                    if (day < 10) {
+                      _authSequence.add('$day');
+                    }
                   });
                 },
                 child: Container(
@@ -223,7 +232,7 @@ class _CalendarDisguiseState extends State<CalendarDisguise> {
                     color: isSelected
                         ? Colors.blue
                         : isToday
-                            ? Colors.blue.withOpacity(0.3)
+                            ? Colors.blue.withValues(alpha: 0.3)
                             : null,
                     shape: BoxShape.circle,
                   ),

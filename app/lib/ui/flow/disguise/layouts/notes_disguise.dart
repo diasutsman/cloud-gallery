@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+
+import '../../../../components/snack_bar.dart';
 
 class NotesDisguise extends StatefulWidget {
   final VoidCallback onAuthSuccess;
@@ -40,11 +44,34 @@ class _NotesDisguiseState extends State<NotesDisguise> {
     // Extract possible pin before '='
     final regex = RegExp(r'^(\d+)=');
     final match = regex.firstMatch(text);
+    Logger().d('Text: $text');
+    Logger().d('match.group(1): ${match?.group(1)}');
     if (match != null) {
       final enteredPin = match.group(1) ?? '';
+      Logger().d('Entered pin: $enteredPin');
       final isCorrect = await widget.verifyPin(enteredPin);
+      Logger().d('Is correct: $isCorrect');
       if (isCorrect) {
+        Fluttertoast.showToast(
+          msg: "Correct!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         widget.onAuthSuccess();
+      } else {
+        Fluttertoast.showToast(
+          msg: "Incorrect!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }

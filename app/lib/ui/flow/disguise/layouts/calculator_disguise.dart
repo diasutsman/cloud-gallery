@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CalculatorDisguise extends StatefulWidget {
   final VoidCallback onAuthSuccess;
@@ -67,7 +68,25 @@ class _CalculatorDisguiseState extends State<CalculatorDisguise> {
     final isCorrect = await widget.verifyPin(_display);
     if (isCorrect) {
       widget.onAuthSuccess();
+      Fluttertoast.showToast(
+        msg: "Correct!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     } else {
+      Fluttertoast.showToast(
+        msg: "Incorrect!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       setState(() {
         _display = _display;
         _startNewNumber = true;

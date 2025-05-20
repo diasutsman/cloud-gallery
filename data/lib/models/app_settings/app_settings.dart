@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data/domain/app_disguise_type.dart';
+import '../../domain/app_disguise_type.dart';
 
 /// Model class for app settings stored in Firebase
 class AppSettings {
@@ -9,6 +9,7 @@ class AppSettings {
   final bool isDarkModeEnabled;
   final String updatedAt;
   final String userId;
+  final String pinHash;
 
   AppSettings({
     this.customAppName = "Photo & Video Vault",
@@ -17,6 +18,7 @@ class AppSettings {
     required this.isDarkModeEnabled,
     required this.updatedAt,
     required this.userId,
+    this.pinHash = '',
   });
 
   factory AppSettings.initial(String userId) {
@@ -27,6 +29,7 @@ class AppSettings {
       isDarkModeEnabled: false,
       updatedAt: DateTime.now().toIso8601String(),
       userId: userId,
+      pinHash: '',
     );
   }
 
@@ -38,6 +41,7 @@ class AppSettings {
       'isDarkModeEnabled': isDarkModeEnabled,
       'updatedAt': updatedAt,
       'userId': userId,
+      'pinHash': pinHash,
     };
   }
 
@@ -49,6 +53,7 @@ class AppSettings {
       isDarkModeEnabled: map['isDarkModeEnabled'] ?? false,
       updatedAt: map['updatedAt'] ?? DateTime.now().toIso8601String(),
       userId: map['userId'] ?? '',
+      pinHash: map['pinHash'] ?? '',
     );
   }
 
@@ -67,6 +72,7 @@ class AppSettings {
     bool? isDarkModeEnabled,
     String? updatedAt,
     String? userId,
+    String? pinHash,
   }) {
     return AppSettings(
       customAppName: customAppName ?? this.customAppName,
@@ -75,6 +81,7 @@ class AppSettings {
       isDarkModeEnabled: isDarkModeEnabled ?? this.isDarkModeEnabled,
       updatedAt: updatedAt ?? this.updatedAt,
       userId: userId ?? this.userId,
+      pinHash: pinHash ?? this.pinHash,
     );
   }
 }

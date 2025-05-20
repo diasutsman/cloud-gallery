@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:data/models/app_settings/app_settings.dart';
+import '../models/app_settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:data/services/firebase_service.dart';
+import 'firebase_service.dart';
+import 'package:logger/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Provider for the AppSettingsService
@@ -20,17 +21,16 @@ class AppSettingsService {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   static const String _collectionPath = 'app_settings';
-  
+
   AppSettingsService(
     this._firebaseService,
     this._firestore,
     this._auth,
   );
-  
+
   /// Get the Firestore collection reference for app settings
-  CollectionReference get _collection => 
-      _firestore.collection(_collectionPath);
-  
+  CollectionReference get _collection => _firestore.collection(_collectionPath);
+
   /// Get the current userId from Firebase Authentication
   String? get _userId => _auth.currentUser?.uid;
 
@@ -39,10 +39,10 @@ class AppSettingsService {
     if (_userId == null || !_firebaseService.isAuthenticated) {
       throw Exception('User not authenticated');
     }
-    
+
     try {
       final docSnapshot = await _collection.doc(_userId).get();
-      
+
       if (docSnapshot.exists) {
         return AppSettings.fromDocument(docSnapshot);
       } else {
@@ -55,20 +55,22 @@ class AppSettingsService {
       throw Exception('Failed to fetch app settings: $e');
     }
   }
-  
+
   /// Save app settings to Firebase
   Future<void> _saveAppSettings(AppSettings settings) async {
     if (_userId == null || !_firebaseService.isAuthenticated) {
       throw Exception('User not authenticated');
     }
-    
+
     try {
-      await _collection.doc(_userId).set(settings.toMap());
+      final map = settings.toMap();
+      Logger().i('Saving app settings: $map');
+      await _collection.doc(_userId).set(map);
     } catch (e) {
       throw Exception('Failed to save app settings: $e');
     }
   }
-  
+
   /// Update app disguise type and save to Firebase
   Future<AppSettings> updateDisguiseType(String disguiseType) async {
     final currentSettings = await getAppSettings();
@@ -76,11 +78,11 @@ class AppSettingsService {
       disguiseType: disguiseType,
       updatedAt: DateTime.now().toIso8601String(),
     );
-    
+
     await _saveAppSettings(updatedSettings);
     return updatedSettings;
   }
-  
+
   /// Update custom app name and save to Firebase
   Future<AppSettings> updateCustomAppName(String customAppName) async {
     final currentSettings = await getAppSettings();
@@ -88,11 +90,11 @@ class AppSettingsService {
       customAppName: customAppName,
       updatedAt: DateTime.now().toIso8601String(),
     );
-    
+
     await _saveAppSettings(updatedSettings);
     return updatedSettings;
   }
-  
+
   /// Update authentication requirement and save to Firebase
   Future<AppSettings> updateAuthRequirement(bool isAuthRequired) async {
     final currentSettings = await getAppSettings();
@@ -100,11 +102,11 @@ class AppSettingsService {
       isAuthRequired: isAuthRequired,
       updatedAt: DateTime.now().toIso8601String(),
     );
-    
+
     await _saveAppSettings(updatedSettings);
     return updatedSettings;
   }
-  
+
   /// Update dark mode setting and save to Firebase
   Future<AppSettings> updateDarkMode(bool isDarkModeEnabled) async {
     final currentSettings = await getAppSettings();
@@ -112,17 +114,17 @@ class AppSettingsService {
       isDarkModeEnabled: isDarkModeEnabled,
       updatedAt: DateTime.now().toIso8601String(),
     );
-    
+
     await _saveAppSettings(updatedSettings);
     return updatedSettings;
   }
-  
+
   /// Stream app settings changes
   Stream<AppSettings?> streamAppSettings() {
     if (_userId == null || !_firebaseService.isAuthenticated) {
       return Stream.value(null);
     }
-    
+
     return _collection.doc(_userId).snapshots().map((snapshot) {
       if (snapshot.exists) {
         return AppSettings.fromDocument(snapshot);
@@ -138,10 +140,13 @@ class AppSettingsService {
       throw Exception('User not authenticated');
     }
     try {
-      await _collection.doc(_userId).set({
-        'pinHash': hash,
-        'updatedAt': DateTime.now().toIso8601String(),
-      }, SetOptions(merge: true));
+      await _collection.doc(_userId).set(
+        {
+          'pinHash': hash,
+          'updatedAt': DateTime.now().toIso8601String(),
+        },
+        SetOptions(merge: true),
+      );
     } catch (e) {
       throw Exception('Failed to update PIN hash: $e');
     }

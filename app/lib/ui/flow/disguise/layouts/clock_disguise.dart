@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 
 class ClockDisguise extends StatefulWidget {
@@ -68,8 +69,14 @@ class _ClockDisguiseState extends State<ClockDisguise>
     final bool matches = await _checkPinSequence();
     Logger().d('matches: $matches');
     _tappedPositions.clear();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(matches ? 'Correct!' : 'Incorrect!')),
+    Fluttertoast.showToast(
+      msg: matches ? 'Correct!' : 'Incorrect!',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: matches ? Colors.green : Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
     );
     if (matches) {
       widget.onAuthSuccess();
@@ -145,7 +152,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
 
   Widget _buildWorldClockTab() {
     return Center(
-      child: Container(
+      child: SizedBox(
         child: Container(
           width: 300,
           height: 300,
@@ -178,8 +185,10 @@ class _ClockDisguiseState extends State<ClockDisguise>
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
-                        _tappedPositions.add(position);
-                        _checkPattern();
+                        if (index < 10) {
+                          _tappedPositions.add(position);
+                          _checkPattern();
+                        }
                       });
                     },
                     child: Container(

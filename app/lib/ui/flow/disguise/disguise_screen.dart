@@ -16,17 +16,10 @@ class DisguiseScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final disguiseType = ref.watch(
-      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
-    );
-    final pinCode = ref.watch(disguisePinProvider);
-
-    ref.read(loggerProvider).d(
-          'DisguiseScreen build disguiseType: $disguiseType, pinCode: $pinCode',
-        );
+    final settingsValue = ref.watch(appSettingsStreamProvider);
 
     // Show loading indicator while PIN is loading
-    if (pinCode is AsyncLoading) {
+    if (settingsValue is AsyncLoading) {
       return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
@@ -35,16 +28,23 @@ class DisguiseScreen extends ConsumerWidget {
     }
 
     // Handle error loading PIN
-    if (pinCode is AsyncError) {
+    if (settingsValue is AsyncError) {
       return Scaffold(
         body: Center(
-          child: Text('Error loading app: ${pinCode.error}'),
+          child: Text('Error loading app: ${settingsValue.error}'),
         ),
       );
     }
 
-    final actualPin =
-        pinCode.asData?.value ?? DisguisePreferences.defaultPinCode;
+    final settings = settingsValue.asData?.value;
+
+    if (settings == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('No settings found'),
+        ),
+      );
+    }
 
     // We'll use this service in the PIN screen for verification
 
@@ -64,7 +64,7 @@ class DisguiseScreen extends ConsumerWidget {
       );
     }
 
-    switch (disguiseType) {
+    switch (settings.disguiseType.toAppDisguiseType()) {
       case AppDisguiseType.calculator:
         return CalculatorDisguise(
           onAuthSuccess: onAuthSuccess,
@@ -87,14 +87,13 @@ class DisguiseScreen extends ConsumerWidget {
         );
       case AppDisguiseType.none:
       default:
-        return _buildPinScreen(context, actualPin, onAuthSuccess, ref);
+        return _buildPinScreen(context, onAuthSuccess, ref);
     }
   }
 
   // Simple PIN entry screen when no disguise is selected
   Widget _buildPinScreen(
     BuildContext context,
-    String correctPin,
     VoidCallback onAuthSuccess,
     WidgetRef ref,
   ) {

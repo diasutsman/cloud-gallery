@@ -13,6 +13,7 @@ import 'package:style/buttons/segmented_button.dart';
 import 'package:style/buttons/switch.dart';
 import 'package:style/extensions/context_extensions.dart';
 import '../../../../domain/utils/app_switcher.dart';
+import '../../../../domain/utils/disguise_preferences.dart';
 import '../../../../gen/assets.gen.dart';
 import '../../../navigation/app_route.dart';
 import '../accounts_screen_view_model.dart';
@@ -248,9 +249,10 @@ class SettingsActionList extends ConsumerWidget {
 
   /// Gets a user-friendly subtitle for the app disguise option
   String _getDisguiseSubtitle(WidgetRef ref) {
-    final appDisguiseType = ref.watch(
-      accountsStateNotifierProvider.select((value) => value.appDisguiseType),
-    );
+    final settingsValue = ref.watch(appSettingsStreamProvider);
+    final appDisguiseType =
+        settingsValue.asData?.value?.disguiseType.toAppDisguiseType() ??
+            AppDisguiseType.none;
 
     return 'Currently: ${_getDisguiseName(appDisguiseType)}';
   }
