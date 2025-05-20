@@ -200,7 +200,9 @@ class _ClockDisguiseState extends State<ClockDisguise>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isPressed
-                            ? Colors.orangeAccent.withOpacity(0.5)
+                            ? Colors.orangeAccent.withValues(
+                                alpha: 0.5,
+                              )
                             : Colors.transparent,
                       ),
                       child: Center(
