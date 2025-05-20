@@ -33,6 +33,9 @@ class _ClockDisguiseState extends State<ClockDisguise>
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _now = DateTime.now();
+        Logger().d(
+          '_now.hour: ${_now.hour}\n_now.minute: ${_now.minute}\n_now.second: ${_now.second}',
+        );
       });
     });
 
