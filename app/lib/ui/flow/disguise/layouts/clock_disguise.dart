@@ -154,6 +154,23 @@ class _ClockDisguiseState extends State<ClockDisguise>
   }
 
   Widget _buildWorldClockTab() {
+    // Get the current time directly here to ensure it's up-to-date
+    final now = DateTime.now();
+    // Convert time to radians for the clock hands
+    // Calculate angles in radians for clock hands
+    // Convert time to degrees for the clock hands
+    // Hours: 30 degrees per hour (360/12), plus small adjustment for minutes
+    final double hourAngle =
+        ((now.hour % 12) * 30 + now.minute * 0.5) * (pi / 180) - pi / 2;
+    // Minutes: 6 degrees per minute (360/60)
+    final double minuteAngle = (now.minute * 6.0 - 180) * (pi / 180);
+    // Seconds: 6 degrees per second (360/60)
+    final double secondAngle = (now.second * 6.0 - 180) * (pi / 180);
+
+    Logger().d(
+      'hourAngle: $hourAngle\nminuteAngle: $minuteAngle\nsecondAngle: $secondAngle',
+    );
+
     return Center(
       child: SizedBox(
         child: Container(
@@ -200,9 +217,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isPressed
-                            ? Colors.orangeAccent.withValues(
-                                alpha: 0.5,
-                              )
+                            ? Colors.orangeAccent.withOpacity(0.5)
                             : Colors.transparent,
                       ),
                       child: Center(
@@ -222,23 +237,24 @@ class _ClockDisguiseState extends State<ClockDisguise>
 
               // Hour hand
               _buildClockHand(
-                angle: (_now.hour % 12 + _now.minute / 60) * pi / 6 - pi / 2,
+                // angle: hourAngle,
+                angle: 0 * (pi / 180),
                 length: 60,
                 width: 4,
                 color: Colors.white,
               ),
 
-              // Minute hand
+// Minute hand
               _buildClockHand(
-                angle: (_now.minute / 60) * 2 * pi - pi / 2,
+                angle: minuteAngle,
                 length: 90,
                 width: 3,
                 color: Colors.white70,
               ),
 
-              // Second hand
+// Second hand
               _buildClockHand(
-                angle: (_now.second / 60) * 2 * pi - pi / 2,
+                angle: secondAngle,
                 length: 100,
                 width: 1,
                 color: Colors.redAccent,
@@ -284,7 +300,7 @@ class _ClockDisguiseState extends State<ClockDisguise>
             borderRadius: BorderRadius.circular(width / 2),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.5),
+                color: color.withValues(alpha: 0.5),
                 blurRadius: 3,
                 spreadRadius: 1,
               ),
@@ -296,12 +312,15 @@ class _ClockDisguiseState extends State<ClockDisguise>
   }
 
   Widget _buildAlarmTab() {
+    // Get fresh current time directly
+    final now = DateTime.now();
+
     return ListView(
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            '${_now.hour}:${_now.minute.toString().padLeft(2, '0')}:${_now.second.toString().padLeft(2, '0')}',
+            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 48,
