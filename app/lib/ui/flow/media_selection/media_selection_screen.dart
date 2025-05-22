@@ -66,7 +66,7 @@ class _MediaSelectionScreenState extends ConsumerState<MediaSelectionScreen> {
           : widget.source == AppMediaSource.dropbox
               ? context.l10n.select_from_dropbox_title
               : widget.source == AppMediaSource.firebase
-                  ? 'Select from Firebase'
+                  ? context.l10n.select_from_device_title
                   : context.l10n.select_from_device_title,
       actions: [
         ActionButton(
