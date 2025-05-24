@@ -1,0 +1,2 @@
+/home/du/Freelance/upwork/cloud-gallery/app/android/app/.cxx/RelWithDebInfo/y3a233j3/x86_64/CMakeFiles/edit_cache.dir
+/home/du/Freelance/upwork/cloud-gallery/app/android/app/.cxx/RelWithDebInfo/y3a233j3/x86_64/CMakeFiles/rebuild_cache.dir

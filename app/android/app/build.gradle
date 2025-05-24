@@ -23,6 +23,14 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+
 android {
     namespace "com.example.photo_and_video_vault_app"
     compileSdkVersion 35
@@ -64,10 +72,10 @@ android {
             }
         } else {
             release {
-                keyAlias 'cloud-gallery'
-                keyPassword 'cloud-gallery'
-                storeFile file('debug.jks')
-                storePassword 'cloud-gallery'
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
             }
         }
     }
